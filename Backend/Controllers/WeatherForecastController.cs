@@ -44,7 +44,7 @@ namespace Backend.Controllers
 
             if (testFunction == null)
             {
-                return NotFound(); // Zwróæ 404 Not Found, jeœli nie znaleziono funkcji testowej.
+                return NotFound();
             }
 
             return Ok(testFunction);
