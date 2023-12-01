@@ -29,5 +29,25 @@ namespace Backend.Controllers
             })
             .ToArray();
         }
+
+        [HttpGet(Name = "GetTestFunction")]
+        [ProducesResponseType(200, Type = typeof(TestFunction))]
+        [ProducesResponseType(400)]
+        public IActionResult Get(int id)
+        {
+            TestFunction testFunction = new TestFunction
+            {
+                Name = "SampleTestFunction",
+                DLLPath = "SampleDLLPath",
+                Params = new string[] { "Param1", "Param2" }
+            };
+
+            if (testFunction == null)
+            {
+                return NotFound(); // Zwróæ 404 Not Found, jeœli nie znaleziono funkcji testowej.
+            }
+
+            return Ok(testFunction);
+        }
     }
 }
