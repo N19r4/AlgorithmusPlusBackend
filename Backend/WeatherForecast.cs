@@ -10,4 +10,9 @@ namespace Backend
 
         public string? Summary { get; set; }
     }
+    public class ApiExample
+    {
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+    }
 }
