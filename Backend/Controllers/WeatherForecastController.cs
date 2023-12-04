@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+
 namespace Backend.Controllers
 {
     [ApiController]
@@ -59,15 +61,24 @@ namespace Backend.Controllers
             string testFunctionDLL = $@"{testFunction.DLLPath}";
             string testFunctionPath = Path.Combine(testFunctionsFolder, Path.GetFileName(testFunctionDLL));
 
-            if (File.Exists(testFunctionPath))
+            if (System.IO.File.Exists(testFunctionPath))
             {
-                File.Copy(testFunctionDLL, testFunctionPath, true);
                 Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zosta³ nadpisany.");
+
             }
             else
             {
-                File.Copy(testFunctionDLL, testFunctionPath);
                 Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zosta³ skopiowany.");
+            }
+            System.IO.File.Copy(testFunctionDLL, testFunctionPath, true);
+
+            string fileNameList = "";
+            fileNameList += $"{testFunction.Name}:{testFunction.DLLPath}\n";
+
+            string path = Path.Combine(Directory.GetCurrentDirectory(), "testFunctionList.txt");
+            using (StreamWriter sw = System.IO.File.AppendText(path))
+            {
+                sw.WriteLine(fileNameList);
             }
 
             return Ok(testFunction);
