@@ -1,6 +1,6 @@
 ﻿namespace Backend
 {
-    public class TestFunction
+    public class FunctionUpload
     {
         public string Name { get; set; }
         public string DLLPath { get; set; }

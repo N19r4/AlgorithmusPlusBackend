@@ -12,42 +12,18 @@ namespace Backend.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class UploadFilesController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+        private readonly ILogger<UploadFilesController> _logger;
 
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public UploadFilesController(ILogger<UploadFilesController> logger)
         {
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
-        {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }
-
         [HttpPost("PostTestFunction")]
-        public IActionResult UploadTestFunction(TestFunction testFunction)
+        public IActionResult UploadTestFunction(FunctionUpload testFunction)
         {
-            //TestFunction testFunction = new TestFunction
-            //{
-            //    Name = "SampleTestFunction",
-            //    DLLPath = "SampleDLLPath",
-            //    Params = new string[] { "Param1", "Param2" }
-            //}
-
 
             if (testFunction == null)
             {
@@ -57,18 +33,18 @@ namespace Backend.Controllers
             string testFunctionsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFunctions");
             Directory.CreateDirectory(testFunctionsFolder);
 
-            // Zapisanie DLL z funkcj¹ testow¹ do katalogu TestFunctions
+            // Zapisanie DLL z funkcjï¿½ testowï¿½ do katalogu TestFunctions
             string testFunctionDLL = $@"{testFunction.DLLPath}";
             string testFunctionPath = Path.Combine(testFunctionsFolder, Path.GetFileName(testFunctionDLL));
 
             if (System.IO.File.Exists(testFunctionPath))
             {
-                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zosta³ nadpisany.");
+                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zostaï¿½ nadpisany.");
 
             }
             else
             {
-                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zosta³ skopiowany.");
+                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zostaï¿½ skopiowany.");
             }
             System.IO.File.Copy(testFunctionDLL, testFunctionPath, true);
 
@@ -83,5 +59,46 @@ namespace Backend.Controllers
 
             return Ok(testFunction);
         }
+
+        [HttpPost("PostAlgorithmFunction")]
+        public IActionResult UploadAlgorithmFunction(FunctionUpload uploadedFunction)
+        {
+
+            if (uploadedFunction == null)
+            {
+                return NotFound();
+            }
+
+            string algorithmsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AlgorithmFunctions");
+            Directory.CreateDirectory(algorithmsFolder);
+
+            // Zapisanie DLL z funkcjï¿½ testowï¿½ do katalogu TestFunctions
+            string testFunctionDLL = $@"{uploadedFunction.DLLPath}";
+            string testFunctionPath = Path.Combine(algorithmsFolder, Path.GetFileName(testFunctionDLL));
+
+            if (System.IO.File.Exists(testFunctionPath))
+            {
+                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zostaï¿½ nadpisany.");
+
+            }
+            else
+            {
+                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zostaï¿½ skopiowany.");
+            }
+            System.IO.File.Copy(testFunctionDLL, testFunctionPath, true);
+
+            string fileNameList = "";
+            fileNameList += $"{uploadedFunction.Name}:{uploadedFunction.DLLPath}\n";
+
+            string path = Path.Combine(Directory.GetCurrentDirectory(), "AlgorithmFunctionList.txt");
+            using (StreamWriter sw = System.IO.File.AppendText(path))
+            {
+                sw.WriteLine(fileNameList);
+            }
+
+            return Ok(uploadedFunction);
+        }
     }
+
+    
 }
