@@ -32,17 +32,17 @@ namespace Backend.Controllers
             string testFunctionsFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
             Directory.CreateDirectory(testFunctionsFolder);
 
-            // Zapisanie DLL z funkcj¹ testow¹ do katalogu TestFunctions
+            // Zapisanie DLL z funkcjï¿½ testowï¿½ do katalogu TestFunctions
             string testFunctionDLL = $"{testFunction.DLLPath}";
             string testFunctionPath = Path.Combine(testFunctionsFolder, Path.GetFileName(testFunctionDLL));
 
             if (System.IO.File.Exists(testFunctionPath))
             {
-                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zosta³ nadpisany.");
+                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zostaï¿½ nadpisany.");
             }
             else
             {
-                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zosta³ skopiowany.");
+                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zostaï¿½ skopiowany.");
             }
             System.IO.File.Copy(testFunctionDLL, testFunctionPath, true);
 
@@ -69,17 +69,17 @@ namespace Backend.Controllers
             string optimizationAlgorithmFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
             Directory.CreateDirectory(optimizationAlgorithmFolder);
 
-            // Zapisanie DLL z funkcj¹ testow¹ do katalogu TestFunctions
+            // Zapisanie DLL z funkcjï¿½ testowï¿½ do katalogu TestFunctions
             string optimizationAlgorithmDLL = $"{optimizationAlgorithm.DLLPath}";
             string optimizationAlgorithmPath = Path.Combine(optimizationAlgorithmFolder, Path.GetFileName(optimizationAlgorithmDLL));
 
             if (System.IO.File.Exists(optimizationAlgorithmPath))
             {
-                Console.WriteLine($"Plik {Path.GetFileName(optimizationAlgorithmPath)} zosta³ nadpisany.");
+                Console.WriteLine($"Plik {Path.GetFileName(optimizationAlgorithmPath)} zostaï¿½ nadpisany.");
             }
             else
             {
-                Console.WriteLine($"Plik {Path.GetFileName(optimizationAlgorithmPath)} zosta³ skopiowany.");
+                Console.WriteLine($"Plik {Path.GetFileName(optimizationAlgorithmPath)} zostaï¿½ skopiowany.");
             }
             System.IO.File.Copy(optimizationAlgorithmDLL, optimizationAlgorithmPath, true);
 
@@ -122,7 +122,7 @@ namespace Backend.Controllers
             }
             catch (IOException e)
             {
-                return BadRequest($"B³¹d odczytu pliku: {e.Message}");
+                return BadRequest($"Bï¿½ï¿½d odczytu pliku: {e.Message}");
             }
 
             List<string> testFunctionPaths = new List<string>();
@@ -142,6 +142,39 @@ namespace Backend.Controllers
             }
 
             return Ok(testFunctionPaths);
+        }
+
+        [HttpPost("RunAlgorithm")]
+        public IActionResult RunAlgorithm(AlgorithmParameters algorithmParameters)
+        {
+            if (algorithmParameters == null)
+            {
+                return NotFound();
+            }
+
+             // int[] T = { 5, 10, 20, 40, 60, 80 };
+            // int[] N = { 10, 20, 40, 80 };
+            // int dim = 2;
+
+            string optimizationAlgorithmName = algorithmParameters.OptimizationAlgorithmName;
+            string[] testFunctionNames = algorithmParameters.TestFunctionNames;
+            int[] T = algorithmParameters.T;
+            int[] N = algorithmParameters.N;
+            int dim = algorithmParameters.Dim;
+
+            // string testFunctionsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFunctions");
+            // string optimizationAlgorithmsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OptimizationAlgorithms");
+            // czy na pewno w tym miejscu? a nie w katalogu bin z plikiem .exe?
+
+            string testFunctionsFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
+            string optimizationAlgorithmsFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
+
+            string[] testFunctionDLLs = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder);
+            string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmName }, optimizationAlgorithmsFolder)[0];
+
+            TestDLL.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, T, N, dim);
+
+            return Ok();
         }
     }
 }
