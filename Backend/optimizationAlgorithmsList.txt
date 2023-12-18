@@ -1,0 +1,1 @@
+Snake Optimization;C:\Users\evake\Desktop\Studia\Zastosowanie metod sztucznej inteligencji w problemach inżynierskich\Projekt\OptimizationSystem\Backend\OptimizationAlgorithms\SnakeOptimizationLibrary.dll
