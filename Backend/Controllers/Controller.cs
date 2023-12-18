@@ -95,54 +95,32 @@ namespace Backend.Controllers
             return Ok(optimizationAlgorithm);
         }
 
-        [HttpPost("PostSelectedTestFunctions")]
-        public IActionResult PostSelectedTestFunctions(List<string> testFunctionsNames)
+        [HttpGet("GetSelectedTestFunctions")]
+        public IActionResult GetSelectedTestFunctions()
         {
-            if (testFunctionsNames == null)
-            {
-                return NotFound();
-            }
-
-            List<Tuple<string, string>> lines = new List<Tuple<string, string>>();
+            string testFunctionsFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
 
             try
             {
-                string[] fileLines = System.IO.File.ReadAllLines("testFunctionList.txt");
-
-                foreach (string line in fileLines)
+                if (!Directory.Exists(testFunctionsFolder))
                 {
-                    string[] parts = line.Split(';');
-                    if (parts.Length == 2)
-                    {
-                        string name = parts[0].Trim();
-                        string path = parts[1].Trim();
-                        lines.Add(new Tuple<string, string>(name, path));
-                    }
-                }
-            }
-            catch (IOException e)
-            {
-                return BadRequest($"B��d odczytu pliku: {e.Message}");
-            }
-
-            List<string> testFunctionPaths = new List<string>();
-
-            for (int i = lines.Count - 1; i >= 0; i--)
-            {
-                string currentName = lines[i].Item1;
-
-                if (testFunctionsNames.Contains(currentName))
-                {
-                    string currentPath = lines[i].Item2;
-                    testFunctionPaths.Add(currentPath);
+                    return BadRequest($"Folder {testFunctionsFolder} nie istnieje.");
                 }
 
-                if (testFunctionPaths.Count == testFunctionsNames.Count)
-                    break;
-            }
+                // Get all DLL files in the TestFunctions folder
+                var dllFiles = Directory.GetFiles(testFunctionsFolder, "*.dll");
 
-            return Ok(testFunctionPaths);
+                // Extract file names without extension
+                var testFunctionNames = dllFiles.Select(file => Path.GetFileNameWithoutExtension(file)).ToList();
+
+                return Ok(testFunctionNames);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Wystąpił błąd: {ex.Message}");
+            }
         }
+
 
         [HttpPost("RunAlgorithm")]
         public IActionResult RunAlgorithm(AlgorithmParameters algorithmParameters)
