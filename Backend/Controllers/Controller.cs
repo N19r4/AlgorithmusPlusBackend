@@ -158,8 +158,6 @@ namespace Backend.Controllers
 
             string optimizationAlgorithmName = algorithmParameters.OptimizationAlgorithmName;
             string[] testFunctionNames = algorithmParameters.TestFunctionNames;
-            int[] T = algorithmParameters.T;
-            int[] N = algorithmParameters.N;
             int dim = algorithmParameters.Dim;
 
             // string testFunctionsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFunctions");
@@ -172,7 +170,7 @@ namespace Backend.Controllers
             string[] testFunctionDLLs = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder);
             string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmName }, optimizationAlgorithmsFolder)[0];
 
-            TestDLL.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, T, N, dim);
+            TestDLL.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim);
 
             return Ok();
         }

@@ -11,15 +11,14 @@ namespace TestDLL
 {
     static class RunAlgorithm
     {
-        static public void Run(string optimizationAlgorithmDLL, string[] testFunctionDLLs, int[] T, int[] N, int dim)
+        static public void Run(string optimizationAlgorithmDLL, string[] testFunctionDLLs, int dim)
         {
             // Wczytanie funkcji testowych z plików DLL z katalogu TestFunctions
             //TODO: wczytanie tylko podanych funkcji testowych
             List<object> testFunctions = LoadTestFunctions(dim, testFunctionDLLs);
             (var optimizationAlgorithm,var delegateFunction) = LoadOptimizationAlgorithm(optimizationAlgorithmDLL);
 
-            var paramsInfoProperty = optimizationAlgorithm.GetType().GetProperty("ParamsInfo");
-            var paramsInfoArray = paramsInfoProperty.GetValue(optimizationAlgorithm) as Array;
+            var paramsInfoArray = PropertyValue.GetPropertyValue<Array>(optimizationAlgorithm, "ParamsInfo");
 
             //tę listę będzie trzeba przekazać na front po wybraniu algorytmu do przetestowania i dopiero po ustawieniu parametrów
             //użytkownik będzie mógł uruchomić testowanie
@@ -30,10 +29,10 @@ namespace TestDLL
                 paramsInfo.Add(
                     new ParamInfo
                     {
-                        Name = (string)paramInfo.GetType().GetProperty("Name").GetValue(paramInfo),
-                        Description = (string)paramInfo.GetType().GetProperty("Description").GetValue(paramInfo),
-                        UpperBoundary = (double)paramInfo.GetType().GetProperty("UpperBoundary").GetValue(paramInfo),
-                        LowerBoundary = (double)paramInfo.GetType().GetProperty("LowerBoundary").GetValue(paramInfo)
+                        Name = PropertyValue.GetPropertyValue<string>(paramInfo, "Name"),
+                        Description = PropertyValue.GetPropertyValue<string>(paramInfo, "Description"),
+                        UpperBoundary = PropertyValue.GetPropertyValue<double>(paramInfo, "UpperBoundary"),
+                        LowerBoundary = PropertyValue.GetPropertyValue<double>(paramInfo, "LowerBoundary")
                     }
                     );
             }
@@ -94,7 +93,7 @@ namespace TestDLL
 
                 foreach (var testFunction in testFunctions)
                 {
-                    var name = testFunction.GetType().GetProperty("Name").GetValue(testFunction);
+                    var name = PropertyValue.GetPropertyValue<string>(testFunction, "Name");
 
                     Console.WriteLine($"Nazwa: {name}");
                 }
