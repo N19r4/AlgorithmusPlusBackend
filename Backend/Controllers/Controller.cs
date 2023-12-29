@@ -38,11 +38,13 @@ namespace Backend.Controllers
 
             if (System.IO.File.Exists(testFunctionPath))
             {
-                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zosta� nadpisany.");
+                Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been overwritten.");
+
             }
             else
             {
-                Console.WriteLine($"Plik {Path.GetFileName(testFunctionPath)} zosta� skopiowany.");
+                Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been copied.");
+
             }
             System.IO.File.Copy(testFunctionDLL, testFunctionPath, true);
 
@@ -75,11 +77,13 @@ namespace Backend.Controllers
 
             if (System.IO.File.Exists(optimizationAlgorithmPath))
             {
-                Console.WriteLine($"Plik {Path.GetFileName(optimizationAlgorithmPath)} zosta� nadpisany.");
+                Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been overwritten.");
+
             }
             else
             {
-                Console.WriteLine($"Plik {Path.GetFileName(optimizationAlgorithmPath)} zosta� skopiowany.");
+                Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been copied.");
+
             }
             System.IO.File.Copy(optimizationAlgorithmDLL, optimizationAlgorithmPath, true);
 
@@ -104,7 +108,7 @@ namespace Backend.Controllers
             {
                 if (!Directory.Exists(testFunctionsFolder))
                 {
-                    return BadRequest($"Folder {testFunctionsFolder} nie istnieje.");
+                    return BadRequest($"Folder {testFunctionsFolder} does not exist.");
                 }
 
                 // Get all DLL files in the TestFunctions folder
@@ -117,7 +121,8 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Wystąpił błąd: {ex.Message}");
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+
             }
         }
 
