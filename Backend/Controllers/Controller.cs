@@ -38,12 +38,12 @@ namespace Backend.Controllers
 
             if (System.IO.File.Exists(testFunctionPath))
             {
-                Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been overwritten.");
+                Console.WriteLine($"File {Path.GetFileName(testFunctionPath)} has been overwritten.");
 
             }
             else
             {
-                Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been copied.");
+                Console.WriteLine($"File {Path.GetFileName(testFunctionPath)} has been copied.");
 
             }
             System.IO.File.Copy(testFunctionDLL, testFunctionPath, true);
