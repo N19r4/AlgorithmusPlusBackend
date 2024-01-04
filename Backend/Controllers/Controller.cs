@@ -126,6 +126,32 @@ namespace Backend.Controllers
             }
         }
 
+        [HttpGet("GetSelectedAlgorithms")]
+        public IActionResult GetSelectedAlgorithms()
+        {
+            string algorithmsFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
+
+            try
+            {
+                if (!Directory.Exists(algorithmsFolder))
+                {
+                    return BadRequest($"Folder {algorithmsFolder} does not exist.");
+                }
+
+                // Get all DLL files in the TestFunctions folder
+                var dllFiles = Directory.GetFiles(algorithmsFolder, "*.dll");
+
+                // Extract file names without extension
+                var algorithmsNames = dllFiles.Select(file => Path.GetFileNameWithoutExtension(file)).ToList();
+
+                return Ok(algorithmsNames);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+
+            }
+        }
 
         [HttpPost("RunAlgorithm")]
         public IActionResult RunAlgorithm(AlgorithmParameters algorithmParameters)
