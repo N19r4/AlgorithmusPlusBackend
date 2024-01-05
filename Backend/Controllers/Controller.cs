@@ -45,7 +45,7 @@ namespace Backend.Controllers
                 Console.WriteLine($"File {Path.GetFileName(testFunctionPath)} has been copied.");
             }
 
-            return Ok();
+            return Ok(Path.GetFileNameWithoutExtension(testFunctionDLL));
         }
 
         [HttpPost("UploadOptimizationAlgorithmDLL")]
@@ -72,7 +72,7 @@ namespace Backend.Controllers
                 Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been copied.");
             }
 
-            return Ok();
+            return Ok(Path.GetFileNameWithoutExtension(optimizationAlgorithmDLL));
         }
 
         [HttpGet("GetAllTestFunctionsNames")]

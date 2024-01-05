@@ -46,12 +46,7 @@ namespace Backend
 
                     for (int i = 0; i < 10; i++)
                     {
-                        var watch = System.Diagnostics.Stopwatch.StartNew();
                         solve.Invoke(optimizationAlgorithm, solveParameters);
-                        watch.Stop();
-
-                        var elapsedMs = watch.ElapsedMilliseconds;
-                        executionTime = elapsedMs.ToString();
 
                         var XBest = PropertyValue.GetPropertyValue<double[]>(optimizationAlgorithm, "XBest");
                         var FBest = PropertyValue.GetPropertyValue<double>(optimizationAlgorithm, "FBest");
@@ -138,7 +133,6 @@ namespace Backend
                         ObjectiveFunctionValue = minFunction.ToString("F5", CultureInfo.InvariantCulture),
                         StandardDeviationOfObjectiveFunctionValue = stdDevForFunction.ToString("F5", CultureInfo.InvariantCulture),
                         NumberOfObjectiveFunctionCalls = numberOfEvaluationFitnessFunction,
-                        ExecutionTime = executionTime
                     };
 
                     testResults.Add(testResult);

@@ -18,6 +18,5 @@ namespace Backend
         public string ObjectiveFunctionValue { get; set; }
         public string StandardDeviationOfObjectiveFunctionValue { get; set; }
         public int NumberOfObjectiveFunctionCalls { get; set; }
-        public string ExecutionTime { get; set; }
     }
 }
