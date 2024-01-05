@@ -7,53 +7,27 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TestDLL
+namespace Backend
 {
     static class RunAlgorithm
     {
-        static public void Run(string optimizationAlgorithmDLL, string[] testFunctionDLLs, int dim)
+        static public void Run(string optimizationAlgorithmDLL, string[] testFunctionDLLs, int dim, List<ParamForAlgorithm> paramsForAlgorithm)
         {
-            // Wczytanie funkcji testowych z plików DLL z katalogu TestFunctions
-            //TODO: wczytanie tylko podanych funkcji testowych
+            // Wczytanie funkcji testowych i algorytmu optymalizacyjnego
             List<object> testFunctions = LoadTestFunctions(dim, testFunctionDLLs);
             (var optimizationAlgorithm,var delegateFunction) = LoadOptimizationAlgorithm(optimizationAlgorithmDLL);
 
-            var paramsInfoArray = PropertyValue.GetPropertyValue<Array>(optimizationAlgorithm, "ParamsInfo");
-
-            //tę listę będzie trzeba przekazać na front po wybraniu algorytmu do przetestowania i dopiero po ustawieniu parametrów
-            //użytkownik będzie mógł uruchomić testowanie
-            List<ParamInfo> paramsInfo = new List<ParamInfo>();
-
-            foreach (var paramInfo in paramsInfoArray)
-            {
-                paramsInfo.Add(
-                    new ParamInfo
-                    {
-                        Name = PropertyValue.GetPropertyValue<string>(paramInfo, "Name"),
-                        Description = PropertyValue.GetPropertyValue<string>(paramInfo, "Description"),
-                        UpperBoundary = PropertyValue.GetPropertyValue<double>(paramInfo, "UpperBoundary"),
-                        LowerBoundary = PropertyValue.GetPropertyValue<double>(paramInfo, "LowerBoundary")
-                    }
-                    );
-            }
-
-            //dostajemy od użytkownika jego wymagania dot. parametrów tj. upper boundry, lower boundry i step
-            //na podstawie tego tworzymy tablice dla parametrów - na razie przykład na sztywno
-            List<TestParam> testParams = new List<TestParam>();
-            testParams.Add(new TestParam(60, 20, 20));
-            testParams.Add(new TestParam(80, 20, 20));
-
             List<double[]> paramsList = new List<double[]>();
 
-            foreach (var testParam in testParams)
+            foreach (var paramForAlgorithm in paramsForAlgorithm)
             {
-                int size = (int)((testParam.UpperBoundry - testParam.LowerBoundry) / testParam.Step) + 1;
+                int size = (int)((paramForAlgorithm.UpperBoundry - paramForAlgorithm.LowerBoundry) / paramForAlgorithm.Step) + 1;
 
                 double[] param = new double[size];
 
                 int i = 0;
 
-                for (var val = testParam.LowerBoundry; val <= testParam.UpperBoundry; val += testParam.Step)
+                for (var val = paramForAlgorithm.LowerBoundry; val <= paramForAlgorithm.UpperBoundry; val += paramForAlgorithm.Step)
                 {
                     param[i] = val;
                     i++;
@@ -68,7 +42,6 @@ namespace TestDLL
         static List<object> LoadTestFunctions(int dim, string[] testFunctionDLLs)
         {
             List<object> testFunctions = new List<object>();
-
 
             foreach (var dllFile in testFunctionDLLs)
             {
@@ -89,18 +62,18 @@ namespace TestDLL
 
             if (testFunctions.Any())
             {
-                Console.WriteLine("Załadowane funkcje testowe:");
+                Console.WriteLine("Loaded test functions:");
 
                 foreach (var testFunction in testFunctions)
                 {
                     var name = PropertyValue.GetPropertyValue<string>(testFunction, "Name");
 
-                    Console.WriteLine($"Nazwa: {name}");
+                    Console.WriteLine($"Name: {name}");
                 }
             }
             else
             {
-                Console.WriteLine("Brak funkcji testowych do załadowania.");
+                Console.WriteLine("No test functions to load.");
             }
 
             return testFunctions;
@@ -121,7 +94,7 @@ namespace TestDLL
                 if (interfaces.Any(i => i.Name == "IOptimizationAlgorithm"))
                 {
                     // Znaleziono klasę implementującą IOptimizationAlgorithm
-                    Console.WriteLine($"Znaleziono klasę: {type.FullName}");
+                    Console.WriteLine($"Class found: {type.FullName}");
 
                     instance = Activator.CreateInstance(type);
 

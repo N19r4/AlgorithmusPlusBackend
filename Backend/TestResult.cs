@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TestDLL
+namespace Backend
 {
     public class TestResult
     {
@@ -18,6 +18,5 @@ namespace TestDLL
         public string ObjectiveFunctionValue { get; set; }
         public string StandardDeviationOfObjectiveFunctionValue { get; set; }
         public int NumberOfObjectiveFunctionCalls { get; set; }
-        public string ExecutionTime { get; set; }
     }
 }
