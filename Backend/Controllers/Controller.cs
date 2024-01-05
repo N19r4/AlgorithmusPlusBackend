@@ -21,10 +21,10 @@ namespace Backend.Controllers
             _logger = logger;
         }
 
-        [HttpPost("PostTestFunction")]
-        public IActionResult UploadTestFunction(TestFunction testFunction)
+        [HttpPost("UploadTestFunctionDLL")]
+        public IActionResult UploadTestFunctionDLL(string testFunctionDLL)
         {
-            if (testFunction == null)
+            if (testFunctionDLL == null)
             {
                 return NotFound();
             }
@@ -32,38 +32,26 @@ namespace Backend.Controllers
             string testFunctionsFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
             Directory.CreateDirectory(testFunctionsFolder);
 
-            // Zapisanie DLL z funkcj� testow� do katalogu TestFunctions
-            string testFunctionDLL = $"{testFunction.DLLPath}";
             string testFunctionPath = Path.Combine(testFunctionsFolder, Path.GetFileName(testFunctionDLL));
 
             if (System.IO.File.Exists(testFunctionPath))
             {
+                System.IO.File.Copy(testFunctionDLL, testFunctionPath, true);
                 Console.WriteLine($"File {Path.GetFileName(testFunctionPath)} has been overwritten.");
-
             }
             else
             {
+                System.IO.File.Copy(testFunctionDLL, testFunctionPath);
                 Console.WriteLine($"File {Path.GetFileName(testFunctionPath)} has been copied.");
-
-            }
-            System.IO.File.Copy(testFunctionDLL, testFunctionPath, true);
-
-            string fileNameList = "";
-            fileNameList += $"{testFunction.Name};{testFunctionPath}";
-
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "testFunctionsList.txt");
-            using (StreamWriter sw = System.IO.File.AppendText(path))
-            {
-                sw.WriteLine(fileNameList);
             }
 
-            return Ok(testFunction);
+            return Ok();
         }
 
-        [HttpPost("PostOptimizationAlgorithm")]
-        public IActionResult UploadOptimizationAlgorithm(OptimizationAlgorithm optimizationAlgorithm)
+        [HttpPost("UploadOptimizationAlgorithmDLL")]
+        public IActionResult UploadOptimizationAlgorithmDLL(string optimizationAlgorithmDLL)
         {
-            if (optimizationAlgorithm == null)
+            if (optimizationAlgorithmDLL == null)
             {
                 return NotFound();
             }
@@ -71,36 +59,24 @@ namespace Backend.Controllers
             string optimizationAlgorithmFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
             Directory.CreateDirectory(optimizationAlgorithmFolder);
 
-            // Zapisanie DLL z funkcj� testow� do katalogu TestFunctions
-            string optimizationAlgorithmDLL = $"{optimizationAlgorithm.DLLPath}";
             string optimizationAlgorithmPath = Path.Combine(optimizationAlgorithmFolder, Path.GetFileName(optimizationAlgorithmDLL));
 
             if (System.IO.File.Exists(optimizationAlgorithmPath))
             {
+                System.IO.File.Copy(optimizationAlgorithmDLL, optimizationAlgorithmPath, true);
                 Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been overwritten.");
-
             }
             else
             {
+                System.IO.File.Copy(optimizationAlgorithmDLL, optimizationAlgorithmPath);
                 Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been copied.");
-
-            }
-            System.IO.File.Copy(optimizationAlgorithmDLL, optimizationAlgorithmPath, true);
-
-            string fileNameList = "";
-            fileNameList += $"{optimizationAlgorithm.Name};{optimizationAlgorithmPath}";
-
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "optimizationAlgorithmsList.txt");
-            using (StreamWriter sw = System.IO.File.AppendText(path))
-            {
-                sw.WriteLine(fileNameList);
             }
 
-            return Ok(optimizationAlgorithm);
+            return Ok();
         }
 
-        [HttpGet("GetSelectedTestFunctions")]
-        public IActionResult GetSelectedTestFunctions()
+        [HttpGet("GetAllTestFunctionsNames")]
+        public IActionResult GetAllTestFunctionsNames()
         {
             string testFunctionsFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
 
@@ -122,12 +98,11 @@ namespace Backend.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"An error occurred: {ex.Message}");
-
             }
         }
 
-        [HttpGet("GetSelectedAlgorithms")]
-        public IActionResult GetSelectedAlgorithms()
+        [HttpGet("GetAllAlgorithmsNames")]
+        public IActionResult GetAllAlgorithmsNames()
         {
             string algorithmsFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
 
@@ -149,14 +124,77 @@ namespace Backend.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
 
+        [HttpGet("GetParamsInfoForAlgorithm")]
+        public IActionResult GetParamsInfoForAlgorithm(string optimizationAlgorithmName)
+        {
+            if (optimizationAlgorithmName == null)
+            {
+                return NotFound();
+            }
+
+            string optimizationAlgorithmsFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
+
+            try
+            {
+                if (!Directory.Exists(optimizationAlgorithmsFolder))
+                {
+                    return BadRequest($"Folder {optimizationAlgorithmsFolder} does not exist.");
+                }
+
+                string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmName }, optimizationAlgorithmsFolder)[0];
+
+                object optimizationAlgorithm = null;
+
+                var assembly = Assembly.LoadFile(optimizationAlgorithmDLL);
+                var types = assembly.GetTypes();
+
+                foreach (var type in types)
+                {
+                    var interfaces = type.GetInterfaces();
+
+                    if (interfaces.Any(i => i.Name == "IOptimizationAlgorithm"))
+                    {
+                        // Znaleziono klasę implementującą IOptimizationAlgorithm
+                        Console.WriteLine($"Class found: {type.FullName}");
+
+                        optimizationAlgorithm = Activator.CreateInstance(type);
+
+                        break;
+                    }
+                }
+
+                var paramsInfoArray = PropertyValue.GetPropertyValue<Array>(optimizationAlgorithm, "ParamsInfo");
+
+                List<ParamInfo> paramsInfo = new List<ParamInfo>();
+
+                foreach (var paramInfo in paramsInfoArray)
+                {
+                    paramsInfo.Add(
+                        new ParamInfo
+                        {
+                            Name = PropertyValue.GetPropertyValue<string>(paramInfo, "Name"),
+                            Description = PropertyValue.GetPropertyValue<string>(paramInfo, "Description"),
+                            UpperBoundary = PropertyValue.GetPropertyValue<double>(paramInfo, "UpperBoundary"),
+                            LowerBoundary = PropertyValue.GetPropertyValue<double>(paramInfo, "LowerBoundary")
+                        }
+                        );
+                }
+
+                return Ok(paramsInfo);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
 
         [HttpPost("RunAlgorithm")]
-        public IActionResult RunAlgorithm(AlgorithmParameters algorithmParameters)
+        public IActionResult RunAlgorithm(AlgorithmRunParameters algorithmRunParameters)
         {
-            if (algorithmParameters == null)
+            if (algorithmRunParameters == null)
             {
                 return NotFound();
             }
@@ -165,9 +203,10 @@ namespace Backend.Controllers
             // int[] N = { 10, 20, 40, 80 };
             // int dim = 2;
 
-            string optimizationAlgorithmName = algorithmParameters.OptimizationAlgorithmName;
-            string[] testFunctionNames = algorithmParameters.TestFunctionNames;
-            int dim = algorithmParameters.Dim;
+            string optimizationAlgorithmName = algorithmRunParameters.OptimizationAlgorithmName;
+            string[] testFunctionNames = algorithmRunParameters.TestFunctionNames;
+            int dim = algorithmRunParameters.Dim;
+            List<ParamForAlgorithm> paramsForAlgorithm = algorithmRunParameters.paramsForAlgorithm;
 
             // string testFunctionsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFunctions");
             // string optimizationAlgorithmsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OptimizationAlgorithms");
@@ -179,7 +218,7 @@ namespace Backend.Controllers
             string[] testFunctionDLLs = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder);
             string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmName }, optimizationAlgorithmsFolder)[0];
 
-            TestDLL.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim);
+            Backend.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim, paramsForAlgorithm);
 
             return Ok();
         }

@@ -1,2 +1,0 @@
-Rastrigin Function;C:\Users\evake\Desktop\Studia\Zastosowanie metod sztucznej inteligencji w problemach inżynierskich\Projekt\OptimizationSystem\Backend\TestFunctions\RastriginFunctionLibrary.dll
-Sphere Function;C:\Users\evake\Desktop\Studia\Zastosowanie metod sztucznej inteligencji w problemach inżynierskich\Projekt\OptimizationSystem\Backend\TestFunctions\SphereFunctionLibrary.dll

@@ -12,7 +12,7 @@ using CsvHelper.Configuration;
 
 //delegate double Function(params double[] x);
 
-namespace TestDLL
+namespace Backend
 {
     public class TestOptimizationAlgorithm
     {
