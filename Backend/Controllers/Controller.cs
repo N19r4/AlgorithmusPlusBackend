@@ -203,7 +203,7 @@ namespace Backend.Controllers
             // int[] N = { 10, 20, 40, 80 };
             // int dim = 2;
 
-            string optimizationAlgorithmName = algorithmRunParameters.OptimizationAlgorithmName;
+            string[] optimizationAlgorithmNames = algorithmRunParameters.OptimizationAlgorithmNames;
             string[] testFunctionNames = algorithmRunParameters.TestFunctionNames;
             int dim = algorithmRunParameters.Dim;
             List<ParamForAlgorithm> paramsForAlgorithm = algorithmRunParameters.paramsForAlgorithm;
@@ -214,12 +214,22 @@ namespace Backend.Controllers
 
             string testFunctionsFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
             string optimizationAlgorithmsFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
-
+            //if there are multiple optimization algorithms and one test function, then run all optimization algorithms for this test function
+            if (testFunctionNames.Length == 1 && optimizationAlgorithmNames.Length != 1)
+            {
+                string testFunctionDLL = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder)[0];
+                string[] optimizationAlgorithmDLLs = SearchDLLs.SearchDLLsInDirectory( optimizationAlgorithmNames , optimizationAlgorithmsFolder);
+                foreach (var oneOptimizationAlgorithmDLL in optimizationAlgorithmDLLs)
+                {
+                    Backend.RunAlgorithm.Run(oneOptimizationAlgorithmDLL, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
+                }
+            }
+            else {
             string[] testFunctionDLLs = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder);
-            string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmName }, optimizationAlgorithmsFolder)[0];
+            string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmNames[0] }, optimizationAlgorithmsFolder)[0];
 
             Backend.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim, paramsForAlgorithm);
-
+            }
             return Ok();
         }
     }
