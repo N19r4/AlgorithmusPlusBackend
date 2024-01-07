@@ -215,8 +215,8 @@ namespace Backend.Controllers
             // string optimizationAlgorithmsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OptimizationAlgorithms");
             // czy na pewno w tym miejscu? a nie w katalogu bin z plikiem .exe?
 
-            string testFunctionsFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
-            string optimizationAlgorithmsFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
+            string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
+            string optimizationAlgorithmsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
             //if there are multiple optimization algorithms and one test function, then run all optimization algorithms for this test function
             if (testFunctionNames.Length == 1 && optimizationAlgorithmNames.Length != 1)
             {
