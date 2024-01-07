@@ -16,7 +16,7 @@ namespace Backend
 {
     public class TestOptimizationAlgorithm
     {
-        public static void RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction, Type testResultType)
+        public static void RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
         {
             string reportFilePath = "report.csv";
 
