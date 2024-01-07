@@ -15,9 +15,9 @@ namespace Backend
         {
             // Wczytanie funkcji testowych i algorytmu optymalizacyjnego
             List<object> testFunctions = LoadTestFunctions(dim, testFunctionDLLs);
-            (var optimizationAlgorithm,var delegateFunction) = LoadOptimizationAlgorithm(optimizationAlgorithmDLL);
+            (var optimizationAlgorithm,var delegateFunction, var testResultType) = LoadOptimizationAlgorithm(optimizationAlgorithmDLL);
 
-            List<double[]> paramsList = new List<double[]>();
+            Dictionary<string, double[]> paramsDict = new Dictionary<string, double[]>();
 
             foreach (var paramForAlgorithm in paramsForAlgorithm)
             {
@@ -33,10 +33,12 @@ namespace Backend
                     i++;
                 }
 
-                paramsList.Add(param);
+                //paramsList.Add(param);
+
+                paramsDict[paramForAlgorithm.Name] = param;
             }
 
-            TestOptimizationAlgorithm.RunTests(testFunctions, optimizationAlgorithm, paramsList, delegateFunction);
+            TestOptimizationAlgorithm.RunTests(testFunctions, optimizationAlgorithm, paramsDict, delegateFunction, testResultType);
         }
 
         static List<object> LoadTestFunctions(int dim, string[] testFunctionDLLs)
@@ -79,10 +81,11 @@ namespace Backend
             return testFunctions;
         }
 
-        static (object, Type) LoadOptimizationAlgorithm(string optimizationAlgorithmDLL)
+        static (object, Type, Type) LoadOptimizationAlgorithm(string optimizationAlgorithmDLL)
         {
             object instance = null;
             Type delegateFunction = null;
+            Type testResultType = null;
 
             var assembly = Assembly.LoadFile(optimizationAlgorithmDLL);
 
@@ -102,9 +105,21 @@ namespace Backend
                 }
             }
 
+            foreach (var type in types)
+            {
+                if (type.Name == "TestResult")
+                {
+                    Console.WriteLine($"Class found: {type.FullName}");
+
+                    testResultType = type;
+
+                    break;
+                }
+            }
+
             delegateFunction = assembly.GetType("fitnessFunction");
 
-            return  (instance, delegateFunction);
+            return  (instance, delegateFunction, testResultType);
         }
     }
 }
