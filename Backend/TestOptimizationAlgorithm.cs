@@ -10,20 +10,18 @@ using Backend;
 using CsvHelper;
 using CsvHelper.Configuration;
 
-//delegate double Function(params double[] x);
-
 namespace Backend
 {
     public class TestOptimizationAlgorithm
     {
-        public static void RunTests(List<object> testFunctions, object optimizationAlgorithm, List<double[]> paramsList, Type delegateFunction)
+        public static void RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction, Type testResultType)
         {
             string reportFilePath = "report.csv";
 
-            List<TestResult> testResults = new List<TestResult>();
+            List<object> testResults = new List<object>();
 
             // tutaj tworze tablice kombinacji parametrów przygotowane już do testów
-            List<double[]> paramsListForTest = GetParamsList(paramsList);
+            List<Dictionary<string, double>> paramsDictForTest = GetParamsDict(paramsDict);
 
             var optimiazationAlgorithmName = PropertyValue.GetPropertyValue<string>(optimizationAlgorithm, "Name");
             var numberOfEvaluationFitnessFunction = PropertyValue.GetPropertyValue<int>(optimizationAlgorithm, "NumberOfEvaluationFitnessFunction");
@@ -37,7 +35,7 @@ namespace Backend
                 var calculateMethodInfo = testFunction.GetType().GetMethod("Calculate");
                 var calculate = Delegate.CreateDelegate(delegateFunction, testFunction, calculateMethodInfo);
 
-                foreach (var parameters in paramsListForTest)
+                foreach (var parameters in paramsDictForTest)
                 {
                     double[,] bestData = new double[dim + 1, 10];
                     string executionTime = "";
@@ -121,19 +119,23 @@ namespace Backend
                     string str_stdDevForParameters = "(" + string.Join("; ", stdDevForParameters) + ")";
                     string str_varCoeffForParameters = "(" + string.Join("; ", varCoeffForParameters) + ")";
 
-                    TestResult testResult = new TestResult
+                    var testResult = Activator.CreateInstance(testResultType);
+                    var setValues = testResult.GetType().GetMethod("SetValues");
+
+                    object[] setValuesParameters = new object[] 
                     {
-                        Algorithm = optimiazationAlgorithmName,
-                        TestFunction = testFunctionName,
-                        NumberOfSearchedParameters = dim,
-                        NumberOfIterations = (int)parameters[0],
-                        PopulationSize = (int)parameters[1],
-                        FoundMinimum = str_minParameters,
-                        StandardDeviationOfSearchedParameters = str_stdDevForParameters,
-                        ObjectiveFunctionValue = minFunction.ToString("F5", CultureInfo.InvariantCulture),
-                        StandardDeviationOfObjectiveFunctionValue = stdDevForFunction.ToString("F5", CultureInfo.InvariantCulture),
-                        NumberOfObjectiveFunctionCalls = numberOfEvaluationFitnessFunction,
+                        optimiazationAlgorithmName,
+                        testFunctionName,
+                        dim,
+                        parameters,
+                        str_minParameters,
+                        str_stdDevForParameters,
+                        minFunction.ToString("F5", CultureInfo.InvariantCulture),
+                        stdDevForFunction.ToString("F5", CultureInfo.InvariantCulture),
+                        numberOfEvaluationFitnessFunction
                     };
+
+                    setValues.Invoke(testResult, setValuesParameters);
 
                     testResults.Add(testResult);
                 }
@@ -150,28 +152,32 @@ namespace Backend
             Console.WriteLine($"Zapisano wyniki do pliku: {reportFilePath}");
         }
 
-        static List<double[]> GetParamsList(List<double[]> paramsList, int currentIndex = 0, double[] currentCombination = null)
+        static List<Dictionary<string, double>> GetParamsDict(Dictionary<string, double[]> paramsDict)
         {
-            if (currentCombination == null)
-                currentCombination = new double[paramsList.Count];
+            var combinations = new List<Dictionary<string, double>>();
+            GetParamsDictHelper(paramsDict, 0, new Dictionary<string, double>(), combinations);
+            return combinations;
+        }
 
-            List<double[]> parameters = new List<double[]>();
-
-            if (currentIndex == paramsList.Count)
+        static void GetParamsDictHelper(Dictionary<string, double[]> paramsDict, int index,
+            Dictionary<string, double> currentCombination, List<Dictionary<string, double>> combinations)
+        {
+            if (index == paramsDict.Count)
             {
-                parameters.Add(currentCombination.ToArray());
-            }
-            else
-            {
-                foreach (var value in paramsList[currentIndex])
-                {
-                    currentCombination[currentIndex] = value;
-
-                    parameters.AddRange(GetParamsList(paramsList, currentIndex + 1, currentCombination));
-                }
+                // Dodawanie skompletowanej kombinacji do listy
+                combinations.Add(new Dictionary<string, double>(currentCombination));
+                return;
             }
 
-            return parameters;
+            string paramName = paramsDict.Keys.ElementAt(index);
+            Console.WriteLine(paramName);
+            double[] paramValues = paramsDict[paramName];
+
+            foreach (double paramValue in paramValues)
+            {
+                currentCombination[paramName] = paramValue;
+                GetParamsDictHelper(paramsDict, index + 1, currentCombination, combinations);
+            }
         }
     }
 }

@@ -7,6 +7,9 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.Net.Http.Headers;
+using System.Net;
+using iTextSharp.text.pdf.parser;
 
 namespace Backend.Controllers
 {
@@ -29,23 +32,23 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
-            string testFunctionsFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
+            string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
             Directory.CreateDirectory(testFunctionsFolder);
 
-            string testFunctionPath = Path.Combine(testFunctionsFolder, Path.GetFileName(testFunctionDLL));
+            string testFunctionPath = System.IO.Path.Combine(testFunctionsFolder, System.IO.Path.GetFileName(testFunctionDLL));
 
             if (System.IO.File.Exists(testFunctionPath))
             {
                 System.IO.File.Copy(testFunctionDLL, testFunctionPath, true);
-                Console.WriteLine($"File {Path.GetFileName(testFunctionPath)} has been overwritten.");
+                Console.WriteLine($"File {System.IO.Path.GetFileName(testFunctionPath)} has been overwritten.");
             }
             else
             {
                 System.IO.File.Copy(testFunctionDLL, testFunctionPath);
-                Console.WriteLine($"File {Path.GetFileName(testFunctionPath)} has been copied.");
+                Console.WriteLine($"File {System.IO.Path.GetFileName(testFunctionPath)} has been copied.");
             }
 
-            return Ok(Path.GetFileNameWithoutExtension(testFunctionDLL));
+            return Ok(System.IO.Path.GetFileNameWithoutExtension(testFunctionDLL));
         }
 
         [HttpPost("UploadOptimizationAlgorithmDLL")]
@@ -56,29 +59,29 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
-            string optimizationAlgorithmFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
+            string optimizationAlgorithmFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
             Directory.CreateDirectory(optimizationAlgorithmFolder);
 
-            string optimizationAlgorithmPath = Path.Combine(optimizationAlgorithmFolder, Path.GetFileName(optimizationAlgorithmDLL));
+            string optimizationAlgorithmPath = System.IO.Path.Combine(optimizationAlgorithmFolder, System.IO.Path.GetFileName(optimizationAlgorithmDLL));
 
             if (System.IO.File.Exists(optimizationAlgorithmPath))
             {
                 System.IO.File.Copy(optimizationAlgorithmDLL, optimizationAlgorithmPath, true);
-                Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been overwritten.");
+                Console.WriteLine($"File {System.IO.Path.GetFileName(optimizationAlgorithmPath)} has been overwritten.");
             }
             else
             {
                 System.IO.File.Copy(optimizationAlgorithmDLL, optimizationAlgorithmPath);
-                Console.WriteLine($"File {Path.GetFileName(optimizationAlgorithmPath)} has been copied.");
+                Console.WriteLine($"File {System.IO.Path.GetFileName(optimizationAlgorithmPath)} has been copied.");
             }
 
-            return Ok(Path.GetFileNameWithoutExtension(optimizationAlgorithmDLL));
+            return Ok(System.IO.Path.GetFileNameWithoutExtension(optimizationAlgorithmDLL));
         }
 
         [HttpGet("GetAllTestFunctionsNames")]
         public IActionResult GetAllTestFunctionsNames()
         {
-            string testFunctionsFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
+            string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
 
             try
             {
@@ -91,7 +94,7 @@ namespace Backend.Controllers
                 var dllFiles = Directory.GetFiles(testFunctionsFolder, "*.dll");
 
                 // Extract file names without extension
-                var testFunctionNames = dllFiles.Select(file => Path.GetFileNameWithoutExtension(file)).ToList();
+                var testFunctionNames = dllFiles.Select(file => System.IO.Path.GetFileNameWithoutExtension(file)).ToList();
 
                 return Ok(testFunctionNames);
             }
@@ -104,7 +107,7 @@ namespace Backend.Controllers
         [HttpGet("GetAllAlgorithmsNames")]
         public IActionResult GetAllAlgorithmsNames()
         {
-            string algorithmsFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
+            string algorithmsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
 
             try
             {
@@ -117,7 +120,7 @@ namespace Backend.Controllers
                 var dllFiles = Directory.GetFiles(algorithmsFolder, "*.dll");
 
                 // Extract file names without extension
-                var algorithmsNames = dllFiles.Select(file => Path.GetFileNameWithoutExtension(file)).ToList();
+                var algorithmsNames = dllFiles.Select(file => System.IO.Path.GetFileNameWithoutExtension(file)).ToList();
 
                 return Ok(algorithmsNames);
             }
@@ -135,7 +138,7 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
-            string optimizationAlgorithmsFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
+            string optimizationAlgorithmsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
 
             try
             {
@@ -212,15 +215,19 @@ namespace Backend.Controllers
             // string optimizationAlgorithmsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OptimizationAlgorithms");
             // czy na pewno w tym miejscu? a nie w katalogu bin z plikiem .exe?
 
-            string testFunctionsFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
-            string optimizationAlgorithmsFolder = Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
+            string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
+            string optimizationAlgorithmsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
 
             string[] testFunctionDLLs = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder);
             string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmName }, optimizationAlgorithmsFolder)[0];
 
             Backend.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim, paramsForAlgorithm);
 
-            return Ok();
+            string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "report.csv");
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            Response.ContentType = new MediaTypeHeaderValue("application/octet-stream").ToString();
+            
+            return new FileStreamResult(stream, "text/csv") { FileDownloadName = "export.csv" };
         }
     }
 }
