@@ -18,8 +18,6 @@ namespace Backend
     {
         public static void RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
         {
-            string reportFilePath = "report.csv";
-
             List<object> testResults = new List<object>();
 
             // tutaj tworze tablice kombinacji parametrów przygotowane już do testów
@@ -40,7 +38,6 @@ namespace Backend
                 foreach (var parameters in paramsDictForTest)
                 {
                     double[,] bestData = new double[dim + 1, 10];
-                    string executionTime = "";
 
                     object[] solveParameters = new object[] { calculate, domain, parameters };
 
@@ -123,21 +120,33 @@ namespace Backend
 
                     dynamic testResult = new ExpandoObject() ;
                     
-                    testResult.optimiazationAlgorithmName = optimiazationAlgorithmName;
-                    testResult.testFunctionName = testFunctionName;
-                    testResult.dim = dim;
+                    testResult.OptimiazationAlgorithm = optimiazationAlgorithmName;
+                    testResult.TestFunction = testFunctionName;
+                    testResult.NumberOfSearchedParameters = dim;
                     foreach(var parameter in parameters)
                     {
                         ((IDictionary<string, object>)testResult).Add(parameter.Key, parameter.Value);
                     }
-                    testResult.str_minParameters = str_minParameters;
-                    testResult.str_stdDevForParameters = str_stdDevForParameters;
-                    testResult.minFunction = minFunction.ToString("F5", CultureInfo.InvariantCulture);
-                    testResult.stdDevForFunction = stdDevForFunction.ToString("F5", CultureInfo.InvariantCulture);
-                    testResult.numberOfEvaluationFitnessFunction = numberOfEvaluationFitnessFunction;
+                    testResult.FoundMinimum = str_minParameters;
+                    testResult.StandardDeviationOfFoundMinimum = str_stdDevForParameters;
+                    testResult.ObjectiveFunctionValue = minFunction.ToString("F5", CultureInfo.InvariantCulture);
+                    testResult.StandardDeviationOfObjectiveFunctionValue = stdDevForFunction.ToString("F5", CultureInfo.InvariantCulture);
+                    testResult.NumberOfObjectiveFunctionCalls = numberOfEvaluationFitnessFunction;
                     
                     testResults.Add(testResult);
                 }
+            }
+
+            string reportsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Reports");
+            Directory.CreateDirectory(reportsFolder);
+
+            string reportFilePath = Path.Combine(reportsFolder, "Report.csv");
+
+            int suffix = 1;
+            while (File.Exists(reportFilePath))
+            {
+                reportFilePath = Path.Combine(reportsFolder, $"Report ({suffix}).csv");
+                suffix++;
             }
 
             // Zapisz CSV

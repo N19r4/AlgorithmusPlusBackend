@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using Microsoft.Net.Http.Headers;
 using System.Net;
 using iTextSharp.text.pdf.parser;
+using System.IO.Compression;
 
 namespace Backend.Controllers
 {
@@ -202,6 +203,19 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
+            // usuwanie folderu z raportami żeby nie zwracało poprzednich
+            string reportsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Reports");
+
+            try
+            {
+                Directory.Delete(reportsFolder, true);
+                Console.WriteLine($"Usunięto folder: {reportsFolder}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Wystąpił błąd podczas usuwania folderu: {ex.Message}");
+            }
+
             // int[] T = { 5, 10, 20, 40, 60, 80 };
             // int[] N = { 10, 20, 40, 80 };
             // int dim = 2;
@@ -227,6 +241,35 @@ namespace Backend.Controllers
                 {
                     Backend.RunAlgorithm.Run(oneOptimizationAlgorithmDLL, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
                 }
+
+                var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
+
+                string zipFileName = "Reports.zip";
+                string zipFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), zipFileName);
+
+                using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                {
+                    foreach (var reportFile in reportFiles)
+                    {
+                        zipArchive.CreateEntryFromFile(reportFile, System.IO.Path.GetFileName(reportFile));
+                    }
+                }
+
+                // Pobierz dane binarne pliku ZIP
+                byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
+
+                // Usuń plik ZIP po dodaniu do odpowiedzi
+                System.IO.File.Delete(zipFilePath);
+
+                // Zwróć plik ZIP jako odpowiedź HTTP
+                var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
+                {
+                    FileName = zipFileName
+                };
+
+                Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
+
+                return File(zipFileBytes, "application/zip");
             }
             else 
             {
@@ -234,13 +277,14 @@ namespace Backend.Controllers
                 string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmNames[0] }, optimizationAlgorithmsFolder)[0];
 
                 Backend.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim, paramsForAlgorithm);
+
+                string reportFile = Directory.GetFiles(reportsFolder, "*.csv").FirstOrDefault();
+
+                var stream = new FileStream(reportFile, FileMode.Open, FileAccess.Read);
+                Response.ContentType = new MediaTypeHeaderValue("application/octet-stream").ToString();
+
+                return new FileStreamResult(stream, "text/csv") { FileDownloadName = "Report.csv" };
             }
-            
-            string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "report.csv");
-            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            Response.ContentType = new MediaTypeHeaderValue("application/octet-stream").ToString();
-            
-            return new FileStreamResult(stream, "text/csv") { FileDownloadName = "export.csv" };
         }
     }
 }
