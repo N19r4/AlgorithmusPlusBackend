@@ -15,7 +15,7 @@ namespace Backend
         {
             // Wczytanie funkcji testowych i algorytmu optymalizacyjnego
             List<object> testFunctions = LoadTestFunctions(dim, testFunctionDLLs);
-            (var optimizationAlgorithm,var delegateFunction, var testResultType) = LoadOptimizationAlgorithm(optimizationAlgorithmDLL);
+            (var optimizationAlgorithm,var delegateFunction) = LoadOptimizationAlgorithm(optimizationAlgorithmDLL);
 
             Dictionary<string, double[]> paramsDict = new Dictionary<string, double[]>();
 
@@ -38,7 +38,7 @@ namespace Backend
                 paramsDict[paramForAlgorithm.Name] = param;
             }
 
-            TestOptimizationAlgorithm.RunTests(testFunctions, optimizationAlgorithm, paramsDict, delegateFunction, testResultType);
+            TestOptimizationAlgorithm.RunTests(testFunctions, optimizationAlgorithm, paramsDict, delegateFunction);
         }
 
         static List<object> LoadTestFunctions(int dim, string[] testFunctionDLLs)
@@ -81,11 +81,10 @@ namespace Backend
             return testFunctions;
         }
 
-        static (object, Type, Type) LoadOptimizationAlgorithm(string optimizationAlgorithmDLL)
+        static (object, Type) LoadOptimizationAlgorithm(string optimizationAlgorithmDLL)
         {
             object instance = null;
             Type delegateFunction = null;
-            Type testResultType = null;
 
             var assembly = Assembly.LoadFile(optimizationAlgorithmDLL);
 
@@ -105,21 +104,9 @@ namespace Backend
                 }
             }
 
-            foreach (var type in types)
-            {
-                if (type.Name == "TestResult")
-                {
-                    Console.WriteLine($"Class found: {type.FullName}");
-
-                    testResultType = type;
-
-                    break;
-                }
-            }
-
             delegateFunction = assembly.GetType("fitnessFunction");
 
-            return  (instance, delegateFunction, testResultType);
+            return  (instance, delegateFunction);
         }
     }
 }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using Backend;
@@ -14,7 +16,7 @@ namespace Backend
 {
     public class TestOptimizationAlgorithm
     {
-        public static void RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction, Type testResultType)
+        public static void RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
         {
             string reportFilePath = "report.csv";
 
@@ -119,24 +121,21 @@ namespace Backend
                     string str_stdDevForParameters = "(" + string.Join("; ", stdDevForParameters) + ")";
                     string str_varCoeffForParameters = "(" + string.Join("; ", varCoeffForParameters) + ")";
 
-                    var testResult = Activator.CreateInstance(testResultType);
-                    var setValues = testResult.GetType().GetMethod("SetValues");
-
-                    object[] setValuesParameters = new object[] 
+                    dynamic testResult = new ExpandoObject() ;
+                    
+                    testResult.optimiazationAlgorithmName = optimiazationAlgorithmName;
+                    testResult.testFunctionName = testFunctionName;
+                    testResult.dim = dim;
+                    foreach(var parameter in parameters)
                     {
-                        optimiazationAlgorithmName,
-                        testFunctionName,
-                        dim,
-                        parameters,
-                        str_minParameters,
-                        str_stdDevForParameters,
-                        minFunction.ToString("F5", CultureInfo.InvariantCulture),
-                        stdDevForFunction.ToString("F5", CultureInfo.InvariantCulture),
-                        numberOfEvaluationFitnessFunction
-                    };
-
-                    setValues.Invoke(testResult, setValuesParameters);
-
+                        ((IDictionary<string, object>)testResult).Add(parameter.Key, parameter.Value);
+                    }
+                    testResult.str_minParameters = str_minParameters;
+                    testResult.str_stdDevForParameters = str_stdDevForParameters;
+                    testResult.minFunction = minFunction.ToString("F5", CultureInfo.InvariantCulture);
+                    testResult.stdDevForFunction = stdDevForFunction.ToString("F5", CultureInfo.InvariantCulture);
+                    testResult.numberOfEvaluationFitnessFunction = numberOfEvaluationFitnessFunction;
+                    
                     testResults.Add(testResult);
                 }
             }
