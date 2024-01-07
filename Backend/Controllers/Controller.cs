@@ -181,8 +181,8 @@ namespace Backend.Controllers
                         {
                             Name = PropertyValue.GetPropertyValue<string>(paramInfo, "Name"),
                             Description = PropertyValue.GetPropertyValue<string>(paramInfo, "Description"),
-                            UpperBoundary = PropertyValue.GetPropertyValue<double>(paramInfo, "UpperBoundry"),
-                            LowerBoundary = PropertyValue.GetPropertyValue<double>(paramInfo, "LowerBoundry")
+                            UpperBoundry = PropertyValue.GetPropertyValue<double>(paramInfo, "UpperBoundry"),
+                            LowerBoundry = PropertyValue.GetPropertyValue<double>(paramInfo, "LowerBoundry")
                         }
                         );
                 }
