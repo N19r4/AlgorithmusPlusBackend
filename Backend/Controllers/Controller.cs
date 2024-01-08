@@ -32,7 +32,10 @@ namespace Backend.Controllers
             {
                 return NotFound();
             }
-
+            if (!System.IO.File.Exists(testFunctionDLL))
+            {
+                return BadRequest("File does not exist.");
+            }
             string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
             Directory.CreateDirectory(testFunctionsFolder);
 
