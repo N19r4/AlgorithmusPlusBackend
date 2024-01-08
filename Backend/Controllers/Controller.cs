@@ -61,6 +61,10 @@ namespace Backend.Controllers
             {
                 return NotFound();
             }
+            if (!System.IO.File.Exists(optimizationAlgorithmDLL))
+            {
+                return BadRequest("File does not exist.");
+            }
 
             string optimizationAlgorithmFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
             Directory.CreateDirectory(optimizationAlgorithmFolder);
