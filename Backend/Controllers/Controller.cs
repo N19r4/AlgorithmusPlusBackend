@@ -40,8 +40,7 @@ namespace Backend.Controllers
 
             if (System.IO.File.Exists(testFunctionPath))
             {
-                System.IO.File.Copy(testFunctionDLL, testFunctionPath, true);
-                Console.WriteLine($"File {System.IO.Path.GetFileName(testFunctionPath)} has been overwritten.");
+                return BadRequest($"File {System.IO.Path.GetFileName(testFunctionPath)} already exists.");
             }
             else
             {
@@ -67,8 +66,7 @@ namespace Backend.Controllers
 
             if (System.IO.File.Exists(optimizationAlgorithmPath))
             {
-                System.IO.File.Copy(optimizationAlgorithmDLL, optimizationAlgorithmPath, true);
-                Console.WriteLine($"File {System.IO.Path.GetFileName(optimizationAlgorithmPath)} has been overwritten.");
+                return BadRequest($"File {System.IO.Path.GetFileName(optimizationAlgorithmPath)} already exists.");
             }
             else
             {
