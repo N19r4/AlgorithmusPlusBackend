@@ -1,0 +1,24 @@
+{
+  "OptimizationAlgorithmNames": [
+    "SnakeOptimization_try"
+  ],
+  "TestFunctionNames": [
+    "RastriginFunction",
+    "SphereFunction"
+  ],
+  "Dim": 3,
+  "paramsForAlgorithm": [
+    {
+      "Name": "T",
+      "UpperBoundry": 60.0,
+      "LowerBoundry": 20.0,
+      "Step": 20.0
+    },
+    {
+      "Name": "N",
+      "UpperBoundry": 40.0,
+      "LowerBoundry": 20.0,
+      "Step": 20.0
+    }
+  ]
+}

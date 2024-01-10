@@ -11,6 +11,9 @@ using Microsoft.Net.Http.Headers;
 using System.Net;
 using iTextSharp.text.pdf.parser;
 using System.IO.Compression;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Backend.Controllers
 {
@@ -208,17 +211,38 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
-            // usuwanie folderu z raportami żeby nie zwracało poprzednich
+            string stateFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "State");
+
+            if (System.IO.File.Exists(System.IO.Path.Combine(stateFolder, "ResultsState.json")))
+            {
+                System.IO.File.Delete(System.IO.Path.Combine(stateFolder, "ResultsState.json"));
+            }
+
+            if (System.IO.File.Exists(System.IO.Path.Combine(stateFolder, "TestState.json")))
+            {
+                System.IO.File.Delete(System.IO.Path.Combine(stateFolder, "TestState.json"));
+            }
+
+            if (System.IO.File.Exists(System.IO.Path.Combine(stateFolder, "AlgorithmState.txt")))
+            {
+                System.IO.File.Delete(System.IO.Path.Combine(stateFolder, "AlgorithmState.txt"));
+            }
+
+            Directory.CreateDirectory(stateFolder);
+
+            string isFinishedPath = System.IO.Path.Combine(stateFolder, "IsFinished.txt");
+            bool isFinished;
+
+            string lastQueryPath = System.IO.Path.Combine(stateFolder, "LastQuery.json");
+            string json = JsonConvert.SerializeObject(algorithmRunParameters, Formatting.Indented);
+            System.IO.File.WriteAllText(lastQueryPath, json);
+
             string reportsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Reports");
 
-            try
+            // usuwanie folderu z raportami żeby nie zwracało poprzednich
+            if (Directory.Exists(reportsFolder))
             {
                 Directory.Delete(reportsFolder, true);
-                Console.WriteLine($"Usunięto folder: {reportsFolder}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Wystąpił błąd podczas usuwania folderu: {ex.Message}");
             }
 
             // int[] T = { 5, 10, 20, 40, 60, 80 };
@@ -239,12 +263,37 @@ namespace Backend.Controllers
             //if there are multiple optimization algorithms and one test function, then run all optimization algorithms for this test function
             if (testFunctionNames.Length == 1 && optimizationAlgorithmNames.Length != 1)
             {
+                string testStatePath = System.IO.Path.Combine(stateFolder, "TestState.json");
+                TestState testState = new TestState();
+
                 string testFunctionDLL = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder)[0];
                 string[] optimizationAlgorithmDLLs = SearchDLLs.SearchDLLsInDirectory( optimizationAlgorithmNames , optimizationAlgorithmsFolder);
-                
-                foreach (var oneOptimizationAlgorithmDLL in optimizationAlgorithmDLLs)
+
+                //testing started
+                isFinished = false;
+
+                using (StreamWriter writer = new StreamWriter(isFinishedPath))
                 {
+                    writer.WriteLine(isFinished);
+                }
+
+                for (int iA = 0; iA < optimizationAlgorithmDLLs.Length; iA++)
+                {
+                    var oneOptimizationAlgorithmDLL = optimizationAlgorithmDLLs[iA];
                     Backend.RunAlgorithm.Run(oneOptimizationAlgorithmDLL, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
+
+                    testState.AlgorithmIterator = iA + 1;
+
+                    string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
+                    System.IO.File.WriteAllText(testStatePath, json2);
+                }
+
+                //testing finished
+                isFinished = true;
+
+                using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                {
+                    writer.WriteLine(isFinished);
                 }
 
                 var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
@@ -260,13 +309,10 @@ namespace Backend.Controllers
                     }
                 }
 
-                // Pobierz dane binarne pliku ZIP
                 byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
 
-                // Usuń plik ZIP po dodaniu do odpowiedzi
                 System.IO.File.Delete(zipFilePath);
 
-                // Zwróć plik ZIP jako odpowiedź HTTP
                 var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
                 {
                     FileName = zipFileName
@@ -281,7 +327,188 @@ namespace Backend.Controllers
                 string[] testFunctionDLLs = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder);
                 string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmNames[0] }, optimizationAlgorithmsFolder)[0];
 
+                //testing started
+                isFinished = false;
+
+                using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                {
+                    writer.WriteLine(isFinished);
+                }
+
                 Backend.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim, paramsForAlgorithm);
+
+                //testing finished
+                isFinished = true;
+
+                using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                {
+                    writer.WriteLine(isFinished);
+                }
+
+                string reportFile = Directory.GetFiles(reportsFolder, "*.csv").FirstOrDefault();
+
+                var stream = new FileStream(reportFile, FileMode.Open, FileAccess.Read);
+                Response.ContentType = new MediaTypeHeaderValue("application/octet-stream").ToString();
+
+                return new FileStreamResult(stream, "text/csv") { FileDownloadName = "Report.csv" };
+            }
+        }
+
+        [HttpGet("IfCalculationsFinished")]
+        public IActionResult IfCalculationsFinished()
+        {
+            string stateFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "State");
+            Directory.CreateDirectory(stateFolder);
+
+            string isFinishedPath = System.IO.Path.Combine(stateFolder, "IsFinished.txt");
+
+            if (System.IO.File.Exists(isFinishedPath))
+            {
+                // Otwórz plik do odczytu
+                using (StreamReader reader = new StreamReader(isFinishedPath))
+                {
+                    // Odczytaj i zwróć wartość boolowską z pliku
+                    string line = reader.ReadLine();
+                    if (bool.TryParse(line, out bool result))
+                    {
+                        return Ok(result);
+                    }
+                }
+            }
+
+            return Ok(true);
+        }
+
+        [HttpPost("ResumeAlgorithm")]
+        public IActionResult ResumeAlgorithm()
+        {
+            string stateFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "State");
+            Directory.CreateDirectory(stateFolder);
+
+            string isFinishedPath = System.IO.Path.Combine(stateFolder, "IsFinished.txt");
+            bool isFinished;
+
+            string lastQueryPath = System.IO.Path.Combine(stateFolder, "LastQuery.json");
+            AlgorithmRunParameters algorithmRunParameters = new AlgorithmRunParameters();
+
+            if (System.IO.File.Exists(lastQueryPath))
+            {
+                string json = System.IO.File.ReadAllText(lastQueryPath);
+                algorithmRunParameters = JsonConvert.DeserializeObject<AlgorithmRunParameters>(json);
+            }
+            else
+            {
+                return NotFound();
+            }
+            
+            string reportsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Reports");
+
+            // usuwanie folderu z raportami żeby nie zwracało poprzednich
+            if (Directory.Exists(reportsFolder))
+            {
+                Directory.Delete(reportsFolder, true);
+            }
+
+            string[] optimizationAlgorithmNames = algorithmRunParameters.OptimizationAlgorithmNames;
+            string[] testFunctionNames = algorithmRunParameters.TestFunctionNames;
+            int dim = algorithmRunParameters.Dim;
+            List<ParamForAlgorithm> paramsForAlgorithm = algorithmRunParameters.paramsForAlgorithm;
+
+            string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
+            string optimizationAlgorithmsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
+            
+            if (testFunctionNames.Length == 1 && optimizationAlgorithmNames.Length != 1)
+            {
+                int iAStart = 0;
+                
+                string testStatePath = System.IO.Path.Combine(stateFolder, "TestState.json");
+                TestState testState = new TestState();
+
+                if (System.IO.File.Exists(testStatePath))
+                {
+                    string json2 = System.IO.File.ReadAllText(testStatePath);
+                    testState = JsonConvert.DeserializeObject<TestState>(json2);
+                    iAStart = testState.AlgorithmIterator;
+                }
+
+                string testFunctionDLL = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder)[0];
+                string[] optimizationAlgorithmDLLs = SearchDLLs.SearchDLLsInDirectory(optimizationAlgorithmNames, optimizationAlgorithmsFolder);
+
+                //testing started
+                isFinished = false;
+
+                using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                {
+                    writer.WriteLine(isFinished);
+                }
+
+                for (int iA = iAStart; iA < optimizationAlgorithmDLLs.Length; iA++)
+                {
+                    var oneOptimizationAlgorithmDLL = optimizationAlgorithmDLLs[iA];
+                    Backend.RunAlgorithm.Run(oneOptimizationAlgorithmDLL, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
+
+                    testState.AlgorithmIterator = iA + 1;
+
+                    string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
+                    System.IO.File.WriteAllText(testStatePath, json2);
+                }
+
+                //testing finished
+                isFinished = true;
+
+                using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                {
+                    writer.WriteLine(isFinished);
+                }
+
+                var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
+
+                string zipFileName = "Reports.zip";
+                string zipFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), zipFileName);
+
+                using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                {
+                    foreach (var reportFile in reportFiles)
+                    {
+                        zipArchive.CreateEntryFromFile(reportFile, System.IO.Path.GetFileName(reportFile));
+                    }
+                }
+
+                byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
+
+                System.IO.File.Delete(zipFilePath);
+
+                var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
+                {
+                    FileName = zipFileName
+                };
+
+                Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
+
+                return File(zipFileBytes, "application/zip");
+            }
+            else
+            {
+                string[] testFunctionDLLs = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder);
+                string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmNames[0] }, optimizationAlgorithmsFolder)[0];
+
+                //testing started
+                isFinished = false;
+
+                using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                {
+                    writer.WriteLine(isFinished);
+                }
+
+                Backend.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim, paramsForAlgorithm);
+
+                //testing finished
+                isFinished = true;
+
+                using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                {
+                    writer.WriteLine(isFinished);
+                }
 
                 string reportFile = Directory.GetFiles(reportsFolder, "*.csv").FirstOrDefault();
 
