@@ -213,25 +213,29 @@ namespace Backend.Controllers
 
             string stateFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "State");
 
-            if (System.IO.File.Exists(System.IO.Path.Combine(stateFolder, "ResultsState.json")))
+            string resultsStatePath = System.IO.Path.Combine(stateFolder, "ResultsState.json");
+            string testStatePath = System.IO.Path.Combine(stateFolder, "TestState.json");
+            string algStatePath = System.IO.Path.Combine(stateFolder, "AlgorithmState.txt");
+
+            if (System.IO.File.Exists(resultsStatePath))
             {
-                System.IO.File.Delete(System.IO.Path.Combine(stateFolder, "ResultsState.json"));
+                System.IO.File.Delete(resultsStatePath);
             }
 
-            if (System.IO.File.Exists(System.IO.Path.Combine(stateFolder, "TestState.json")))
+            if (System.IO.File.Exists(testStatePath))
             {
-                System.IO.File.Delete(System.IO.Path.Combine(stateFolder, "TestState.json"));
+                System.IO.File.Delete(testStatePath);
             }
 
-            if (System.IO.File.Exists(System.IO.Path.Combine(stateFolder, "AlgorithmState.txt")))
+            if (System.IO.File.Exists(algStatePath))
             {
-                System.IO.File.Delete(System.IO.Path.Combine(stateFolder, "AlgorithmState.txt"));
+                System.IO.File.Delete(algStatePath);
             }
 
             Directory.CreateDirectory(stateFolder);
 
             string isFinishedPath = System.IO.Path.Combine(stateFolder, "IsFinished.txt");
-            bool isFinished;
+            bool isFinished = true;
 
             string lastQueryPath = System.IO.Path.Combine(stateFolder, "LastQuery.json");
             string json = JsonConvert.SerializeObject(algorithmRunParameters, Formatting.Indented);
@@ -263,7 +267,6 @@ namespace Backend.Controllers
             //if there are multiple optimization algorithms and one test function, then run all optimization algorithms for this test function
             if (testFunctionNames.Length == 1 && optimizationAlgorithmNames.Length != 1)
             {
-                string testStatePath = System.IO.Path.Combine(stateFolder, "TestState.json");
                 TestState testState = new TestState();
 
                 string testFunctionDLL = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder)[0];
@@ -283,10 +286,16 @@ namespace Backend.Controllers
                     Backend.RunAlgorithm.Run(oneOptimizationAlgorithmDLL, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
 
                     testState.AlgorithmIterator = iA + 1;
+                    testState.TestFuncIterator = 0;
+                    testState.ParamIterator = 0;
+                    testState.Iterator = 0;
+                    testState.BestData = null;
 
                     string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
                     System.IO.File.WriteAllText(testStatePath, json2);
                 }
+
+                System.IO.File.Delete(testStatePath);
 
                 //testing finished
                 isFinished = true;
@@ -404,10 +413,10 @@ namespace Backend.Controllers
             string reportsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Reports");
 
             // usuwanie folderu z raportami żeby nie zwracało poprzednich
-            if (Directory.Exists(reportsFolder))
-            {
-                Directory.Delete(reportsFolder, true);
-            }
+            //if (Directory.Exists(reportsFolder))
+            //{
+            //    Directory.Delete(reportsFolder, true);
+            //}
 
             string[] optimizationAlgorithmNames = algorithmRunParameters.OptimizationAlgorithmNames;
             string[] testFunctionNames = algorithmRunParameters.TestFunctionNames;
@@ -448,10 +457,16 @@ namespace Backend.Controllers
                     Backend.RunAlgorithm.Run(oneOptimizationAlgorithmDLL, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
 
                     testState.AlgorithmIterator = iA + 1;
+                    testState.TestFuncIterator = 0;
+                    testState.ParamIterator = 0;
+                    testState.Iterator = 0;
+                    testState.BestData = null;
 
                     string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
                     System.IO.File.WriteAllText(testStatePath, json2);
                 }
+
+                System.IO.File.Delete(testStatePath);
 
                 //testing finished
                 isFinished = true;

@@ -1,10 +1,10 @@
 {
   "OptimizationAlgorithmNames": [
-    "SnakeOptimization_try"
+    "SnakeOptimization_try",
+    "SnakeOptimization_try_copy"
   ],
   "TestFunctionNames": [
-    "RastriginFunction",
-    "SphereFunction"
+    "RastriginFunction"
   ],
   "Dim": 3,
   "paramsForAlgorithm": [

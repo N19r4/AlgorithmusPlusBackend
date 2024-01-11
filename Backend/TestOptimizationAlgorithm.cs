@@ -9,10 +9,13 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 using Backend;
 using CsvHelper;
 using CsvHelper.Configuration;
+using iTextSharp.text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Backend
 {
@@ -35,12 +38,15 @@ namespace Backend
 
             if (File.Exists(testStatePath))
             {
-                Console.WriteLine("Dzieje sie");
-                testResults = LoadListFromFile(resultsStatePath);
                 testState = LoadFromFile(testStatePath);
                 iStart = testState.Iterator;
                 iFStart = testState.TestFuncIterator;
                 iPStart = testState.ParamIterator;
+            }
+
+            if(File.Exists(resultsStatePath))
+            {
+                testResults = LoadListFromFile(resultsStatePath);
             }
 
             // tutaj tworze tablice kombinacji parametrów przygotowane już do testów
@@ -193,8 +199,6 @@ namespace Backend
                 suffix++;
             }
 
-            Console.WriteLine(testResults.GetType());
-
             // Zapisz CSV
             var config = new CsvConfiguration(new CultureInfo("en-US"));
             using (var writer = new StreamWriter(reportFilePath))
@@ -263,8 +267,24 @@ namespace Backend
         {
             if (File.Exists(filePath))
             {
+                List<dynamic> testResults = new List<dynamic>();
+
                 string json = File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<List<dynamic>>(json);
+                List<dynamic> list = JsonConvert.DeserializeObject<List<dynamic>>(json);
+
+                foreach (var element in list)
+                {
+                    dynamic testResult = new ExpandoObject();
+
+                    foreach (var property in element.Properties())
+                    {
+                        ((IDictionary<string, object>)testResult)[property.Name] = property.Value.ToObject<object>();
+                    }
+
+                    testResults.Add(testResult);
+                }
+
+                return testResults;
             }
             return new List<dynamic>();
         }
