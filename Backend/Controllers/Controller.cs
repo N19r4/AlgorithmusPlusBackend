@@ -285,11 +285,7 @@ namespace Backend.Controllers
                     var oneOptimizationAlgorithmDLL = optimizationAlgorithmDLLs[iA];
                     Backend.RunAlgorithm.Run(oneOptimizationAlgorithmDLL, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
 
-                    testState.AlgorithmIterator = iA + 1;
-                    testState.TestFuncIterator = 0;
-                    testState.ParamIterator = 0;
-                    testState.Iterator = 0;
-                    testState.BestData = null;
+                    SetTestState(testState, iA);
 
                     string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
                     System.IO.File.WriteAllText(testStatePath, json2);
@@ -412,12 +408,6 @@ namespace Backend.Controllers
             
             string reportsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Reports");
 
-            // usuwanie folderu z raportami żeby nie zwracało poprzednich
-            //if (Directory.Exists(reportsFolder))
-            //{
-            //    Directory.Delete(reportsFolder, true);
-            //}
-
             string[] optimizationAlgorithmNames = algorithmRunParameters.OptimizationAlgorithmNames;
             string[] testFunctionNames = algorithmRunParameters.TestFunctionNames;
             int dim = algorithmRunParameters.Dim;
@@ -456,11 +446,7 @@ namespace Backend.Controllers
                     var oneOptimizationAlgorithmDLL = optimizationAlgorithmDLLs[iA];
                     Backend.RunAlgorithm.Run(oneOptimizationAlgorithmDLL, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
 
-                    testState.AlgorithmIterator = iA + 1;
-                    testState.TestFuncIterator = 0;
-                    testState.ParamIterator = 0;
-                    testState.Iterator = 0;
-                    testState.BestData = null;
+                    SetTestState(testState, iA);
 
                     string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
                     System.IO.File.WriteAllText(testStatePath, json2);
@@ -532,6 +518,15 @@ namespace Backend.Controllers
 
                 return new FileStreamResult(stream, "text/csv") { FileDownloadName = "Report.csv" };
             }
+        }
+
+        private void SetTestState(TestState testState, int iA)
+        {
+            testState.AlgorithmIterator = iA + 1;
+            testState.TestFuncIterator = 0;
+            testState.ParamIterator = 0;
+            testState.Iterator = 0;
+            testState.BestData = null;
         }
     }
 }
