@@ -8,9 +8,14 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 using Backend;
 using CsvHelper;
 using CsvHelper.Configuration;
+using iTextSharp.text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Backend
 {
@@ -18,7 +23,31 @@ namespace Backend
     {
         public static void RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
         {
-            List<object> testResults = new List<object>();
+            string stateFolder = Path.Combine(Directory.GetCurrentDirectory(), "State");
+            Directory.CreateDirectory(stateFolder);
+
+            string resultsStatePath = Path.Combine(stateFolder, "ResultsState.json");
+            List<dynamic> testResults = new List<dynamic>();
+
+            string testStatePath = Path.Combine(stateFolder, "TestState.json");
+            TestState testState = new TestState();
+            
+            int iStart = 0;
+            int iFStart = 0;
+            int iPStart = 0;
+
+            if (File.Exists(testStatePath))
+            {
+                testState = LoadFromFile(testStatePath);
+                iStart = testState.Iterator;
+                iFStart = testState.TestFuncIterator;
+                iPStart = testState.ParamIterator;
+            }
+
+            if(File.Exists(resultsStatePath))
+            {
+                testResults = LoadListFromFile(resultsStatePath);
+            }
 
             // tutaj tworze tablice kombinacji parametrów przygotowane już do testów
             List<Dictionary<string, double>> paramsDictForTest = GetParamsDict(paramsDict);
@@ -27,21 +56,28 @@ namespace Backend
             var numberOfEvaluationFitnessFunction = PropertyValue.GetPropertyValue<int>(optimizationAlgorithm, "NumberOfEvaluationFitnessFunction");
             var solve = optimizationAlgorithm.GetType().GetMethod("Solve");
 
-            foreach (var testFunction in testFunctions)
+            for (int iF = iFStart; iF < testFunctions.Count; iF++)
             {
+                var testFunction = testFunctions[iF];
                 var testFunctionName = PropertyValue.GetPropertyValue<string>(testFunction, "Name");
                 var dim = PropertyValue.GetPropertyValue<int>(testFunction, "Dim");
                 var domain = PropertyValue.GetPropertyValue<double[,]>(testFunction, "Domain");
                 var calculateMethodInfo = testFunction.GetType().GetMethod("Calculate");
                 var calculate = Delegate.CreateDelegate(delegateFunction, testFunction, calculateMethodInfo);
 
-                foreach (var parameters in paramsDictForTest)
+                for (int iP = iPStart; iP < paramsDictForTest.Count; iP++)
                 {
+                    var parameters = paramsDictForTest[iP];
                     double[,] bestData = new double[dim + 1, 10];
+
+                    if (testState.BestData != null)
+                    {
+                        bestData = testState.BestData;
+                    }
 
                     object[] solveParameters = new object[] { calculate, domain, parameters };
 
-                    for (int i = 0; i < 10; i++)
+                    for (int i = iStart; i < 10; i++)
                     {
                         solve.Invoke(optimizationAlgorithm, solveParameters);
 
@@ -55,7 +91,13 @@ namespace Backend
                         }
 
                         bestData[dim, i] = FBest;
+
+                        testState.BestData = bestData;
+                        testState.Iterator = i + 1;
+                        SaveToFile(testState, testStatePath);
                     }
+
+                    iStart = 0;
 
                     double minFunction = bestData[dim, 0];
                     int minFunction_index = 0;
@@ -134,7 +176,15 @@ namespace Backend
                     testResult.NumberOfObjectiveFunctionCalls = numberOfEvaluationFitnessFunction;
                     
                     testResults.Add(testResult);
+                    SaveListToFile(testResults, resultsStatePath);
+
+                    testState.ParamIterator = iP + 1;
+                    SaveToFile(testState, testStatePath);
                 }
+
+                iPStart = 0;
+                testState.TestFuncIterator = iF + 1;
+                SaveToFile(testState, testStatePath);
             }
 
             string reportsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Reports");
@@ -150,7 +200,7 @@ namespace Backend
             }
 
             // Zapisz CSV
-            var config = new CsvConfiguration(new System.Globalization.CultureInfo("en-US"));
+            var config = new CsvConfiguration(new CultureInfo("en-US"));
             using (var writer = new StreamWriter(reportFilePath))
             using (var csv = new CsvWriter(writer, config))
             {
@@ -158,6 +208,9 @@ namespace Backend
             }
             //success:
             Console.WriteLine($"Zapisano wyniki do pliku: {reportFilePath}");
+
+            File.Delete(testStatePath);
+            File.Delete(resultsStatePath);
         }
 
         static List<Dictionary<string, double>> GetParamsDict(Dictionary<string, double[]> paramsDict)
@@ -186,6 +239,54 @@ namespace Backend
                 currentCombination[paramName] = paramValue;
                 GetParamsDictHelper(paramsDict, index + 1, currentCombination, combinations);
             }
+        }
+
+        static void SaveToFile(TestState testState, string filePath)
+        {
+            string json = JsonConvert.SerializeObject(testState, Newtonsoft.Json.Formatting.Indented);
+            File.WriteAllText(filePath, json);
+        }
+
+        static TestState LoadFromFile(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                string json = File.ReadAllText(filePath);
+                return JsonConvert.DeserializeObject<TestState>(json);
+            }
+            return new TestState();
+        }
+
+        static void SaveListToFile(List<dynamic> results, string filePath)
+        {
+            string json = JsonConvert.SerializeObject(results, Newtonsoft.Json.Formatting.Indented);
+            File.WriteAllText(filePath, json);
+        }
+
+        static List<dynamic> LoadListFromFile(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                List<dynamic> testResults = new List<dynamic>();
+
+                string json = File.ReadAllText(filePath);
+                List<dynamic> list = JsonConvert.DeserializeObject<List<dynamic>>(json);
+
+                foreach (var element in list)
+                {
+                    dynamic testResult = new ExpandoObject();
+
+                    foreach (var property in element.Properties())
+                    {
+                        ((IDictionary<string, object>)testResult)[property.Name] = property.Value.ToObject<object>();
+                    }
+
+                    testResults.Add(testResult);
+                }
+
+                return testResults;
+            }
+            return new List<dynamic>();
         }
     }
 }
