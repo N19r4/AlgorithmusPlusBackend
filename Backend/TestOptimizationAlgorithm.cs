@@ -16,7 +16,7 @@ namespace Backend
 {
     public class TestOptimizationAlgorithm
     {
-        public static void RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
+        public static (double, Dictionary<string, double>) RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
         {
             List<object> testResults = new List<object>();
 
@@ -26,6 +26,8 @@ namespace Backend
             var optimiazationAlgorithmName = PropertyValue.GetPropertyValue<string>(optimizationAlgorithm, "Name");
             var numberOfEvaluationFitnessFunction = PropertyValue.GetPropertyValue<int>(optimizationAlgorithm, "NumberOfEvaluationFitnessFunction");
             var solve = optimizationAlgorithm.GetType().GetMethod("Solve");
+            double returnedMinimum = double.MaxValue;
+            int returnedParamsIndex = 0;
 
             foreach (var testFunction in testFunctions)
             {
@@ -34,9 +36,10 @@ namespace Backend
                 var domain = PropertyValue.GetPropertyValue<double[,]>(testFunction, "Domain");
                 var calculateMethodInfo = testFunction.GetType().GetMethod("Calculate");
                 var calculate = Delegate.CreateDelegate(delegateFunction, testFunction, calculateMethodInfo);
-
+                int currentParamIndex = 0;
+                
                 foreach (var parameters in paramsDictForTest)
-                {
+                {  
                     double[,] bestData = new double[dim + 1, 10];
 
                     object[] solveParameters = new object[] { calculate, domain, parameters };
@@ -134,7 +137,15 @@ namespace Backend
                     testResult.NumberOfObjectiveFunctionCalls = numberOfEvaluationFitnessFunction;
                     
                     testResults.Add(testResult);
+                    if (minFunction < returnedMinimum)
+                    {
+                        returnedParamsIndex = currentParamIndex;
+                        returnedMinimum = minFunction;
+                    }
+                    returnedMinimum = minFunction;
+                    currentParamIndex++;
                 }
+
             }
 
             string reportsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Reports");
@@ -158,6 +169,8 @@ namespace Backend
             }
             //success:
             Console.WriteLine($"Zapisano wyniki do pliku: {reportFilePath}");
+
+            return (returnedMinimum, paramsDictForTest[returnedParamsIndex]);
         }
 
         static List<Dictionary<string, double>> GetParamsDict(Dictionary<string, double[]> paramsDict)
