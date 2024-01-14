@@ -384,6 +384,29 @@ namespace Backend.Controllers
             return Ok(true);
         }
 
+        [HttpGet("GetResumedAlgorithmParams")]
+        public IActionResult GetResumedAlgorithmParams()
+        {
+            string stateFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "State");
+            Directory.CreateDirectory(stateFolder);
+
+            string lastQueryPath = System.IO.Path.Combine(stateFolder, "LastQuery.json");
+            AlgorithmRunParameters algorithmRunParameters = new AlgorithmRunParameters();
+
+            if (System.IO.File.Exists(lastQueryPath))
+            {
+                string json = System.IO.File.ReadAllText(lastQueryPath);
+                algorithmRunParameters = JsonConvert.DeserializeObject<AlgorithmRunParameters>(json);
+            }
+            else
+            {
+                return NotFound();
+            }
+
+            return Ok(algorithmRunParameters);
+        }
+
+
         [HttpPost("ResumeAlgorithm")]
         public IActionResult ResumeAlgorithm()
         {
