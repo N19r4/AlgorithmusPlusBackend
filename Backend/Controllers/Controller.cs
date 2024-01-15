@@ -480,7 +480,7 @@ namespace Backend.Controllers
             string[] optimizationAlgorithmNames = algorithmRunParameters.OptimizationAlgorithmNames;
             string[] testFunctionNames = algorithmRunParameters.TestFunctionNames;
             int dim = algorithmRunParameters.Dim;
-            List<ParamForAlgorithm> paramsForAlgorithm = algorithmRunParameters.paramsForAlgorithm;
+            List<ParamForAlgorithm> paramsForAlgorithm = algorithmRunParameters.ParamsDict[optimizationAlgorithmNames[0]];
 
             string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
             string optimizationAlgorithmsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
@@ -559,7 +559,7 @@ namespace Backend.Controllers
             }
             else
             {
-                List<ParamForAlgorithm> paramsForAlgorithm = algorithmRunParameters.ParamsDict[optimizationAlgorithmNames[0]];
+                paramsForAlgorithm = algorithmRunParameters.ParamsDict[optimizationAlgorithmNames[0]];
                 string[] testFunctionDLLs = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder);
                 string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmNames[0] }, optimizationAlgorithmsFolder)[0];
 
