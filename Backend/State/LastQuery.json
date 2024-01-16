@@ -1,24 +1,40 @@
 {
   "OptimizationAlgorithmNames": [
-    "SnakeOptimization_try",
-    "SnakeOptimization_try_copy"
+    "SnakeOptimization",
+    "SnakeOptimization_copy"
   ],
   "TestFunctionNames": [
-    "RastriginFunction"
+    "SphereFunction"
   ],
-  "Dim": 3,
-  "paramsForAlgorithm": [
-    {
-      "Name": "T",
-      "UpperBoundry": 60.0,
-      "LowerBoundry": 20.0,
-      "Step": 20.0
-    },
-    {
-      "Name": "N",
-      "UpperBoundry": 40.0,
-      "LowerBoundry": 20.0,
-      "Step": 20.0
-    }
-  ]
+  "Dim": 2,
+  "ParamsDict": {
+    "SnakeOptimization": [
+      {
+        "Name": "T",
+        "UpperBoundry": 40.0,
+        "LowerBoundry": 20.0,
+        "Step": 20.0
+      },
+      {
+        "Name": "N",
+        "UpperBoundry": 60.0,
+        "LowerBoundry": 20.0,
+        "Step": 20.0
+      }
+    ],
+    "SnakeOptimization_copy": [
+      {
+        "Name": "T",
+        "UpperBoundry": 40.0,
+        "LowerBoundry": 20.0,
+        "Step": 20.0
+      },
+      {
+        "Name": "N",
+        "UpperBoundry": 60.0,
+        "LowerBoundry": 20.0,
+        "Step": 20.0
+      }
+    ]
+  }
 }
