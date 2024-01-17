@@ -21,7 +21,7 @@ namespace Backend
 {
     public class TestOptimizationAlgorithm
     {
-        public static void RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
+        public static (double, Dictionary<string, double>) RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
         {
             string stateFolder = Path.Combine(Directory.GetCurrentDirectory(), "State");
             Directory.CreateDirectory(stateFolder);
@@ -55,6 +55,8 @@ namespace Backend
             var optimiazationAlgorithmName = PropertyValue.GetPropertyValue<string>(optimizationAlgorithm, "Name");
             var numberOfEvaluationFitnessFunction = PropertyValue.GetPropertyValue<int>(optimizationAlgorithm, "NumberOfEvaluationFitnessFunction");
             var solve = optimizationAlgorithm.GetType().GetMethod("Solve");
+            double returnedMinimum = double.MaxValue;
+            int returnedParamsIndex = 0;
 
             for (int iF = iFStart; iF < testFunctions.Count; iF++)
             {
@@ -64,9 +66,10 @@ namespace Backend
                 var domain = PropertyValue.GetPropertyValue<double[,]>(testFunction, "Domain");
                 var calculateMethodInfo = testFunction.GetType().GetMethod("Calculate");
                 var calculate = Delegate.CreateDelegate(delegateFunction, testFunction, calculateMethodInfo);
-
+                int currentParamIndex = 0;
+                
                 for (int iP = iPStart; iP < paramsDictForTest.Count; iP++)
-                {
+                {  
                     var parameters = paramsDictForTest[iP];
                     double[,] bestData = new double[dim + 1, 10];
 
@@ -176,12 +179,18 @@ namespace Backend
                     testResult.NumberOfObjectiveFunctionCalls = numberOfEvaluationFitnessFunction;
                     
                     testResults.Add(testResult);
+                    if (minFunction < returnedMinimum)
+                    {
+                        returnedParamsIndex = currentParamIndex;
+                        returnedMinimum = minFunction;
+                    }
+                    currentParamIndex++;
+                    
                     SaveListToFile(testResults, resultsStatePath);
-
                     testState.ParamIterator = iP + 1;
                     SaveToFile(testState, testStatePath);
                 }
-
+                
                 iPStart = 0;
                 testState.TestFuncIterator = iF + 1;
                 SaveToFile(testState, testStatePath);
@@ -211,6 +220,8 @@ namespace Backend
 
             File.Delete(testStatePath);
             File.Delete(resultsStatePath);
+
+            return (returnedMinimum, paramsDictForTest[returnedParamsIndex]);
         }
 
         static List<Dictionary<string, double>> GetParamsDict(Dictionary<string, double[]> paramsDict)
