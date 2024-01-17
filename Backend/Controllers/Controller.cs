@@ -159,42 +159,7 @@ namespace Backend.Controllers
 
                 string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmName }, optimizationAlgorithmsFolder)[0];
 
-                object optimizationAlgorithm = null;
-
-                var assembly = Assembly.LoadFile(optimizationAlgorithmDLL);
-                var types = assembly.GetTypes();
-
-                foreach (var type in types)
-                {
-                    var interfaces = type.GetInterfaces();
-
-                    if (interfaces.Any(i => i.Name == "IOptimizationAlgorithm"))
-                    {
-                        // Znaleziono klasę implementującą IOptimizationAlgorithm
-                        Console.WriteLine($"Class found: {type.FullName}");
-
-                        optimizationAlgorithm = Activator.CreateInstance(type);
-
-                        break;
-                    }
-                }
-
-                var paramsInfoArray = PropertyValue.GetPropertyValue<Array>(optimizationAlgorithm, "ParamsInfo");
-
-                List<ParamInfo> paramsInfo = new List<ParamInfo>();
-
-                foreach (var paramInfo in paramsInfoArray)
-                {
-                    paramsInfo.Add(
-                        new ParamInfo
-                        {
-                            Name = PropertyValue.GetPropertyValue<string>(paramInfo, "Name"),
-                            Description = PropertyValue.GetPropertyValue<string>(paramInfo, "Description"),
-                            UpperBoundry = PropertyValue.GetPropertyValue<double>(paramInfo, "UpperBoundry"),
-                            LowerBoundry = PropertyValue.GetPropertyValue<double>(paramInfo, "LowerBoundry")
-                        }
-                        );
-                }
+                var paramsInfo = GetParams.GetParamsForAlgorithm(optimizationAlgorithmDLL);
 
                 return Ok(paramsInfo);
             }
@@ -212,11 +177,43 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
+            string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
+            string optimizationAlgorithmsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
+
+            if (algorithmRunParameters.ParamsDict.Count == 0)
+            {
+                Dictionary<string, List<ParamForAlgorithm>> ParamsDict = new Dictionary<string, List<ParamForAlgorithm>>();
+
+                foreach (var optimizationAlgorithmName in algorithmRunParameters.OptimizationAlgorithmNames)
+                {
+                    string optimizationAlgorithmDLL = SearchDLLs.SearchDLLsInDirectory(new string[] { optimizationAlgorithmName }, optimizationAlgorithmsFolder)[0];
+                    var paramsInfo = GetParams.GetParamsForAlgorithm(optimizationAlgorithmDLL);
+                    
+                    List<ParamForAlgorithm> paramsList = new List<ParamForAlgorithm>();
+
+                    foreach (var  param in paramsInfo)
+                    {
+                        ParamForAlgorithm paramForAlgorithm = new ParamForAlgorithm();
+
+                        paramForAlgorithm.Name = param.Name;
+                        paramForAlgorithm.UpperBoundry = param.UpperBoundry;
+                        paramForAlgorithm.LowerBoundry = param.LowerBoundry;
+                        paramForAlgorithm.Step = param.Step;
+
+                        paramsList.Add(paramForAlgorithm);
+                    }
+
+                    ParamsDict[optimizationAlgorithmName] = paramsList;
+                }
+
+                algorithmRunParameters.ParamsDict = ParamsDict;
+            }
+
             string stateFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "State");
 
             string resultsStatePath = System.IO.Path.Combine(stateFolder, "ResultsState.json");
             string testStatePath = System.IO.Path.Combine(stateFolder, "TestState.json");
-            string algStatePath = System.IO.Path.Combine(stateFolder, "AlgorithmState.txt");
+            string algStatePath = System.IO.Path.Combine(stateFolder, "AlgorithmState.json");
 
             if (System.IO.File.Exists(resultsStatePath))
             {
@@ -262,8 +259,6 @@ namespace Backend.Controllers
             // string optimizationAlgorithmsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OptimizationAlgorithms");
             // czy na pewno w tym miejscu? a nie w katalogu bin z plikiem .exe?
 
-            string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
-            string optimizationAlgorithmsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
             //if there are multiple optimization algorithms and one test function, then run all optimization algorithms for this test function
             if (testFunctionNames.Length == 1 && optimizationAlgorithmNames.Length != 1)
             {
