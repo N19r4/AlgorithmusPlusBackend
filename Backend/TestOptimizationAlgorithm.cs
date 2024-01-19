@@ -21,6 +21,8 @@ namespace Backend
 {
     public class TestOptimizationAlgorithm
     {
+        public static bool stopCalcFlag { get; set; }
+
         public static (double, Dictionary<string, double>) RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
         {
             string stateFolder = Path.Combine(Directory.GetCurrentDirectory(), "State");
@@ -82,7 +84,14 @@ namespace Backend
 
                     for (int i = iStart; i < 10; i++)
                     {
-                        solve.Invoke(optimizationAlgorithm, solveParameters);
+                        if (!stopCalcFlag)
+                        {
+                            solve.Invoke(optimizationAlgorithm, solveParameters);
+                        }
+                        else
+                        {
+                            return (0.0, null);
+                        }
 
                         var XBest = PropertyValue.GetPropertyValue<double[]>(optimizationAlgorithm, "XBest");
                         var FBest = PropertyValue.GetPropertyValue<double>(optimizationAlgorithm, "FBest");

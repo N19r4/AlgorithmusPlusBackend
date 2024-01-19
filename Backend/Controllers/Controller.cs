@@ -15,6 +15,7 @@ using System.IO.Compression;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using static System.Net.Mime.MediaTypeNames;
+using System.Threading;
 
 namespace Backend.Controllers
 {
@@ -40,6 +41,26 @@ namespace Backend.Controllers
             {
                 return BadRequest("File does not exist.");
             }
+
+            bool isTestFunction = false;
+            var assembly = Assembly.LoadFile(testFunctionDLL);
+            var types = assembly.GetTypes();
+
+            foreach (var type in types)
+            {
+                var interfaces = type.GetInterfaces();
+                if (interfaces.Any(i => i.Name == "ITestFunction"))
+                {
+                    isTestFunction = true;
+                    break;
+                }
+            }
+
+            if (!isTestFunction)
+            {
+                return BadRequest("This DLL has no test function.");
+            }
+
             string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
             Directory.CreateDirectory(testFunctionsFolder);
 
@@ -68,6 +89,25 @@ namespace Backend.Controllers
             if (!System.IO.File.Exists(optimizationAlgorithmDLL))
             {
                 return BadRequest("File does not exist.");
+            }
+
+            bool isOptimizationAlg = false;
+            var assembly = Assembly.LoadFile(optimizationAlgorithmDLL);
+            var types = assembly.GetTypes();
+
+            foreach (var type in types)
+            {
+                var interfaces = type.GetInterfaces();
+                if (interfaces.Any(i => i.Name == "IOptimizationAlgorithm"))
+                {
+                    isOptimizationAlg = true;
+                    break;
+                }
+            }
+
+            if (!isOptimizationAlg)
+            {
+                return BadRequest("This DLL has no optimization algorithm.");
             }
 
             string optimizationAlgorithmFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
@@ -177,6 +217,8 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
+            TestOptimizationAlgorithm.stopCalcFlag = false;
+
             string testFunctionsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "TestFunctions");
             string optimizationAlgorithmsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "OptimizationAlgorithms");
 
@@ -263,82 +305,88 @@ namespace Backend.Controllers
             if (testFunctionNames.Length == 1 && optimizationAlgorithmNames.Length != 1)
             {
                //for each optimization algorithm run test function
-                    TestState testState = new TestState();
-                    string testFunctionDLL = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder)[0];
-                    string[] optimizationAlgorithmDLLs = SearchDLLs.SearchDLLsInDirectory( optimizationAlgorithmNames , optimizationAlgorithmsFolder);
+                TestState testState = new TestState();
+                string testFunctionDLL = SearchDLLs.SearchDLLsInDirectory(testFunctionNames, testFunctionsFolder)[0];
+                string[] optimizationAlgorithmDLLs = SearchDLLs.SearchDLLsInDirectory( optimizationAlgorithmNames , optimizationAlgorithmsFolder);
 
-                                    //testing started
-                    isFinished = false;
+                                //testing started
+                isFinished = false;
 
-                    using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                {
+                    writer.WriteLine(isFinished);
+                }  
+                var dllsAndNames = optimizationAlgorithmDLLs.Zip(optimizationAlgorithmNames, (d, n) => new { dll = d, name = n });
+                //write OptimizationAlgorithmNames and dlls to console
+                for (int iA = 0; iA < optimizationAlgorithmDLLs.Length; iA++)
+                {
+                    var dn = dllsAndNames.ToArray()[iA];
+                    List<ParamForAlgorithm> paramsForAlgorithm = algorithmRunParameters.ParamsDict[dn.name];
+
+                    var (returnedMinimum, returnedparams) = Backend.RunAlgorithm.Run(dn.dll, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
+                    //write csv with returned minimum and parameters
+
+                    if (returnedparams == null && TestOptimizationAlgorithm.stopCalcFlag)
                     {
-                        writer.WriteLine(isFinished);
-                    }  
-                    var dllsAndNames = optimizationAlgorithmDLLs.Zip(optimizationAlgorithmNames, (d, n) => new { dll = d, name = n });
-                    //write OptimizationAlgorithmNames and dlls to console
-                    for (int iA = 0; iA < optimizationAlgorithmDLLs.Length; iA++)
-                    {
-                        var dn = dllsAndNames.ToArray()[iA];
-                        List<ParamForAlgorithm> paramsForAlgorithm = algorithmRunParameters.ParamsDict[dn.name];
-
-                        var (returnedMinimum, returnedparams) = Backend.RunAlgorithm.Run(dn.dll, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
-                        //write csv with returned minimum and parameters
-
-                        string returnedMinimumAndParamsFilePath = System.IO.Path.Combine(reportsFolder, $"ReturnedMinimumAndParams ({dn.name}).csv");
-
-                        dynamic testResult = new System.Dynamic.ExpandoObject() ;
-                        
-                        testResult.BestMinimum = returnedMinimum;
-                        foreach(var parameter in returnedparams)
-                        {
-                            ((IDictionary<string, object>)testResult).Add(parameter.Key, parameter.Value);
-                            Console.WriteLine($"Parametr: {parameter.Key}, wartość: {parameter.Value}");
-                        }
-                        List<object> testResults = new List<object>
-                        {
-                            testResult
-                        };
-                        
-                        var config = new CsvHelper.Configuration.CsvConfiguration(new System.Globalization.CultureInfo("en-US"));
-                        // var float_options = new CsvHelper.TypeConversion.TypeConverterOptions { 
-                        // Formats = new[] { ".##" } };
-                        //TODO: float formating in csv
-
-                        using (var writer = new StreamWriter(returnedMinimumAndParamsFilePath))
-                        using (var csv = new  CsvHelper.CsvWriter(writer, config))
-                        {
-                            // csv.Configuration.TypeConverterOptionsCache.AddOptions<float>(float_options);
-                            // csv.Configuration.TypeConverterOptionsCache.AddOptions<double>(float_options);
-                            csv.WriteRecords(testResults);
-                        }
-
-                        Console.WriteLine($"Zapisano wyniki do pliku: {returnedMinimumAndParamsFilePath}");
-                        SetTestState(testState, iA);
-
-                        string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
-                        System.IO.File.WriteAllText(testStatePath, json2);
+                        return Ok("Calculations stopped");
                     }
-                                    System.IO.File.Delete(testStatePath);
 
-                    //testing finished
-                    isFinished = true;
+                    string returnedMinimumAndParamsFilePath = System.IO.Path.Combine(reportsFolder, $"ReturnedMinimumAndParams ({dn.name}).csv");
 
-                    using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                    dynamic testResult = new System.Dynamic.ExpandoObject() ;
+                        
+                    testResult.BestMinimum = returnedMinimum;
+                    foreach(var parameter in returnedparams)
                     {
-                        writer.WriteLine(isFinished);
+                        ((IDictionary<string, object>)testResult).Add(parameter.Key, parameter.Value);
+                        Console.WriteLine($"Parametr: {parameter.Key}, wartość: {parameter.Value}");
                     }
-                    // foreach(var dn in dllsAndNames)
-                    // {
-                    //     Console.WriteLine($"Nazwa algorytmu: {dn.name}, ścieżka do pliku: {dn.dll}");
-                    // }
-                    // foreach (var optimizationAlgorithmDLL in optimizationAlgorithmDLLs)
-                    // {
-                    //     Console.WriteLine($"Nazwa algorytmu: {optimizationAlgorithmDLL}");
-                    // }
-                    // foreach (var optimizationAlgorithmName in optimizationAlgorithmNames)
-                    // {
-                    //     Console.WriteLine($"Nazwa algorytmu: {optimizationAlgorithmName}");
-                    // }
+                    List<object> testResults = new List<object>
+                    {
+                        testResult
+                    };
+                        
+                    var config = new CsvHelper.Configuration.CsvConfiguration(new System.Globalization.CultureInfo("en-US"));
+                    // var float_options = new CsvHelper.TypeConversion.TypeConverterOptions { 
+                    // Formats = new[] { ".##" } };
+                    //TODO: float formating in csv
+
+                    using (var writer = new StreamWriter(returnedMinimumAndParamsFilePath))
+                    using (var csv = new  CsvHelper.CsvWriter(writer, config))
+                    {
+                        // csv.Configuration.TypeConverterOptionsCache.AddOptions<float>(float_options);
+                        // csv.Configuration.TypeConverterOptionsCache.AddOptions<double>(float_options);
+                        csv.WriteRecords(testResults);
+                    }
+
+                    Console.WriteLine($"Zapisano wyniki do pliku: {returnedMinimumAndParamsFilePath}");
+                    SetTestState(testState, iA);
+
+                    string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
+                    System.IO.File.WriteAllText(testStatePath, json2);
+                }
+
+                System.IO.File.Delete(testStatePath);
+
+                //testing finished
+                isFinished = true;
+
+                using (StreamWriter writer = new StreamWriter(isFinishedPath))
+                {
+                    writer.WriteLine(isFinished);
+                }
+                // foreach(var dn in dllsAndNames)
+                // {
+                //     Console.WriteLine($"Nazwa algorytmu: {dn.name}, ścieżka do pliku: {dn.dll}");
+                // }
+                // foreach (var optimizationAlgorithmDLL in optimizationAlgorithmDLLs)
+                // {
+                //     Console.WriteLine($"Nazwa algorytmu: {optimizationAlgorithmDLL}");
+                // }
+                // foreach (var optimizationAlgorithmName in optimizationAlgorithmNames)
+                // {
+                //     Console.WriteLine($"Nazwa algorytmu: {optimizationAlgorithmName}");
+                // }
 
 
                 var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
@@ -381,7 +429,12 @@ namespace Backend.Controllers
                     writer.WriteLine(isFinished);
                 }
 
-                Backend.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim, paramsForAlgorithm);
+                var (returnedMinimum, returnedparams) = Backend.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim, paramsForAlgorithm);
+
+                if (returnedparams == null && TestOptimizationAlgorithm.stopCalcFlag)
+                {
+                    return Ok("Calculations stopped");
+                }
 
                 //testing finished
                 isFinished = true;
@@ -451,6 +504,8 @@ namespace Backend.Controllers
         [HttpPost("ResumeAlgorithm")]
         public IActionResult ResumeAlgorithm()
         {
+            TestOptimizationAlgorithm.stopCalcFlag = false;
+
             string stateFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "State");
             Directory.CreateDirectory(stateFolder);
 
@@ -510,6 +565,11 @@ namespace Backend.Controllers
                     List<ParamForAlgorithm> paramsForAlgorithm = algorithmRunParameters.ParamsDict[dn.name];
 
                     var (returnedMinimum, returnedparams) = Backend.RunAlgorithm.Run(dn.dll, new string[] { testFunctionDLL }, dim, paramsForAlgorithm);
+
+                    if (returnedparams == null && TestOptimizationAlgorithm.stopCalcFlag)
+                    {
+                        return Ok("Calculations stopped");
+                    }
 
                     string returnedMinimumAndParamsFilePath = System.IO.Path.Combine(reportsFolder, $"ReturnedMinimumAndParams ({dn.name}).csv");
                     dynamic testResult = new System.Dynamic.ExpandoObject() ;
@@ -592,7 +652,12 @@ namespace Backend.Controllers
                     writer.WriteLine(isFinished);
                 }
 
-                Backend.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim, paramsForAlgorithm);
+                var (returnedMinimum, returnedparams) = Backend.RunAlgorithm.Run(optimizationAlgorithmDLL, testFunctionDLLs, dim, paramsForAlgorithm);
+
+                if (returnedparams == null && TestOptimizationAlgorithm.stopCalcFlag)
+                {
+                    return Ok("Calculations stopped");
+                }
 
                 //testing finished
                 isFinished = true;
@@ -609,6 +674,37 @@ namespace Backend.Controllers
 
                 return new FileStreamResult(stream, "text/csv") { FileDownloadName = "Report.csv" };
             }
+        }
+
+        [HttpPost("CancelResuming")]
+        public IActionResult CancelResuming()
+        {
+            string stateFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "State");
+            Directory.CreateDirectory(stateFolder);
+
+            string isFinishedPath = System.IO.Path.Combine(stateFolder, "IsFinished.txt");
+
+            bool isFinished = true;
+
+            using (StreamWriter writer = new StreamWriter(isFinishedPath))
+            {
+                writer.WriteLine(isFinished);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("StopCallcultions")]
+        public IActionResult StopCallculations()
+        {
+            if (TestOptimizationAlgorithm.stopCalcFlag != null)
+            {
+                TestOptimizationAlgorithm.stopCalcFlag = true;
+
+                return Ok("Calculations stopped.");
+            }
+
+            return BadRequest("No calculations in progress.");
         }
 
         private void SetTestState(TestState testState, int iA)
