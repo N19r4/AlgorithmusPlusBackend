@@ -21,8 +21,13 @@ namespace Backend
 
             foreach (var paramForAlgorithm in paramsForAlgorithm)
             {
-                int size = (int)((paramForAlgorithm.UpperBoundry - paramForAlgorithm.LowerBoundry) / paramForAlgorithm.Step) + 1;
+                int size = 1;
 
+                if (paramForAlgorithm.Step != 0)
+                {
+                    size = (int)((paramForAlgorithm.UpperBoundry - paramForAlgorithm.LowerBoundry) / paramForAlgorithm.Step) + 1;
+                }
+                
                 double[] param = new double[size];
 
                 int i = 0;
@@ -31,6 +36,11 @@ namespace Backend
                 {
                     param[i] = val;
                     i++;
+
+                    if (i == size)
+                    {
+                        break;
+                    }
                 }
 
                 //paramsList.Add(param);
@@ -39,6 +49,12 @@ namespace Backend
             }
 
             var (returnedMinimum, returnedparams) =  TestOptimizationAlgorithm.RunTests(testFunctions, optimizationAlgorithm, paramsDict, delegateFunction);
+
+            if (returnedparams == null && TestOptimizationAlgorithm.stopCalcFlag)
+            {
+                return (0.0, null);
+            }
+
             return (returnedMinimum, returnedparams);
         }
 
