@@ -1,24 +1,39 @@
 {
   "OptimizationAlgorithmNames": [
+    "SalpSwarmOptimization",
     "SnakeOptimization"
   ],
   "TestFunctionNames": [
-    "SphereFunction"
+    "BukinFunctionN6"
   ],
-  "Dim": 2,
+  "Dim": 4,
   "ParamsDict": {
-    "SnakeOptimization": [
+    "SalpSwarmOptimization": [
       {
         "Name": "T",
-        "UpperBoundry": 60.0,
-        "LowerBoundry": 40.0,
-        "Step": 0.0
+        "UpperBoundry": 50.0,
+        "LowerBoundry": 10.0,
+        "Step": 10.0
       },
       {
         "Name": "N",
-        "UpperBoundry": 60.0,
-        "LowerBoundry": 40.0,
-        "Step": 0.0
+        "UpperBoundry": 50.0,
+        "LowerBoundry": 10.0,
+        "Step": 10.0
+      }
+    ],
+    "SnakeOptimization": [
+      {
+        "Name": "T",
+        "UpperBoundry": 50.0,
+        "LowerBoundry": 10.0,
+        "Step": 10.0
+      },
+      {
+        "Name": "N",
+        "UpperBoundry": 50.0,
+        "LowerBoundry": 10.0,
+        "Step": 10.0
       }
     ]
   }

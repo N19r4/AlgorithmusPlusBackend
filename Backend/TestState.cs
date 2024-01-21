@@ -7,5 +7,11 @@
         public int ParamIterator { get; set; }
         public int TestFuncIterator { get; set; }
         public int AlgorithmIterator { get; set; }
+
+        public TestState(int algorithmIterator, int testFuncIterator)
+        {
+            AlgorithmIterator = algorithmIterator;
+            TestFuncIterator = testFuncIterator;
+        }
     }
 }
