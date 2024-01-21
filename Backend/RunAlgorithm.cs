@@ -11,7 +11,7 @@ namespace Backend
 {
     static class RunAlgorithm
     {
-        static public (double, Dictionary<string, double>) Run(string optimizationAlgorithmDLL, string[] testFunctionDLLs, int dim, List<ParamForAlgorithm> paramsForAlgorithm)
+        static public (string, double, Dictionary<string, double>) Run(string optimizationAlgorithmDLL, string[] testFunctionDLLs, int dim, List<ParamForAlgorithm> paramsForAlgorithm)
         {
             // Wczytanie funkcji testowych i algorytmu optymalizacyjnego
             List<object> testFunctions = LoadTestFunctions(dim, testFunctionDLLs);
@@ -48,14 +48,14 @@ namespace Backend
                 paramsDict[paramForAlgorithm.Name] = param;
             }
 
-            var (returnedMinimum, returnedparams) =  TestOptimizationAlgorithm.RunTests(testFunctions, optimizationAlgorithm, paramsDict, delegateFunction);
+            var (returnedMinimum, returnedObjFuncVal, returnedparams) =  TestOptimizationAlgorithm.RunTests(testFunctions, optimizationAlgorithm, paramsDict, delegateFunction);
 
             if (returnedparams == null && TestOptimizationAlgorithm.stopCalcFlag)
             {
-                return (0.0, null);
+                return ("", 0.0, null);
             }
 
-            return (returnedMinimum, returnedparams);
+            return (returnedMinimum, returnedObjFuncVal, returnedparams);
         }
 
         static List<object> LoadTestFunctions(int dim, string[] testFunctionDLLs)

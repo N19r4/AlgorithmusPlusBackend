@@ -1,2 +1,0 @@
-OptimiazationAlgorithm,TestFunction,NumberOfSearchedParameters,T,N,FoundMinimum,StandardDeviationOfFoundMinimum,ObjectiveFunctionValue,StandardDeviationOfObjectiveFunctionValue,NumberOfObjectiveFunctionCalls
-Snake Optimization,Sphere function,2,40,40,"(-1,929700063921085E-10; -2,6277878290437727E-10)","(1,8098774919235223E-08; 1,698680847325479E-08)",0.00000,0.00000,1640

@@ -23,7 +23,7 @@ namespace Backend
     {
         public static bool stopCalcFlag { get; set; }
 
-        public static (double, Dictionary<string, double>) RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
+        public static (string, double, Dictionary<string, double>) RunTests(List<object> testFunctions, object optimizationAlgorithm, Dictionary<string, double[]> paramsDict, Type delegateFunction)
         {
             string stateFolder = Path.Combine(Directory.GetCurrentDirectory(), "State");
             Directory.CreateDirectory(stateFolder);
@@ -32,23 +32,27 @@ namespace Backend
             List<dynamic> testResults = new List<dynamic>();
 
             string testStatePath = Path.Combine(stateFolder, "TestState.json");
-            TestState testState = new TestState();
+            TestState testState = new TestState(0, 0);
             
-            int iStart = 0;
-            int iFStart = 0;
+            int iStart = 0; 
             int iPStart = 0;
+            int iFStart = 0;
 
             if (File.Exists(testStatePath))
             {
                 testState = LoadFromFile(testStatePath);
                 iStart = testState.Iterator;
-                iFStart = testState.TestFuncIterator;
                 iPStart = testState.ParamIterator;
+                iFStart = testState.TestFuncIterator;
+
+                File.Delete(testStatePath);
             }
 
             if(File.Exists(resultsStatePath))
             {
                 testResults = LoadListFromFile(resultsStatePath);
+
+                File.Delete(resultsStatePath);
             }
 
             // tutaj tworze tablice kombinacji parametrów przygotowane już do testów
@@ -57,7 +61,9 @@ namespace Backend
             var optimiazationAlgorithmName = PropertyValue.GetPropertyValue<string>(optimizationAlgorithm, "Name");
             var numberOfEvaluationFitnessFunction = PropertyValue.GetPropertyValue<int>(optimizationAlgorithm, "NumberOfEvaluationFitnessFunction");
             var solve = optimizationAlgorithm.GetType().GetMethod("Solve");
-            double returnedMinimum = double.MaxValue;
+            double returnedObjFuncVal = double.MaxValue;
+            string returnedMinimum = "";
+            double minStdDev = double.MaxValue;
             int returnedParamsIndex = 0;
 
             for (int iF = iFStart; iF < testFunctions.Count; iF++)
@@ -90,7 +96,7 @@ namespace Backend
                         }
                         else
                         {
-                            return (0.0, null);
+                            return ("", 0.0, null);
                         }
 
                         var XBest = PropertyValue.GetPropertyValue<double[]>(optimizationAlgorithm, "XBest");
@@ -110,6 +116,8 @@ namespace Backend
                     }
 
                     iStart = 0;
+                    testState.Iterator = 0;
+                    SaveToFile(testState, testStatePath);
 
                     double minFunction = bestData[dim, 0];
                     int minFunction_index = 0;
@@ -143,7 +151,7 @@ namespace Backend
                     for (int i = 0; i < dim; i++)
                         minParameters[i] = bestData[i, minFunction_index];
 
-                    string str_minParameters = "(" + string.Join("; ", minParameters) + ")";
+                    string str_minParameters = "(" + string.Join("; ", minParameters.Select(x => x.ToString("F5"))) + ")";
 
                     double[] stdDevForParameters = new double[dim];
                     double[] varCoeffForParameters = new double[dim];
@@ -169,8 +177,8 @@ namespace Backend
                         varCoeffForParameters[i] = varCoeff;
                     }
 
-                    string str_stdDevForParameters = "(" + string.Join("; ", stdDevForParameters) + ")";
-                    string str_varCoeffForParameters = "(" + string.Join("; ", varCoeffForParameters) + ")";
+                    string str_stdDevForParameters = "(" + string.Join("; ", stdDevForParameters.Select(x => x.ToString("F5"))) + ")";
+                    string str_varCoeffForParameters = "(" + string.Join("; ", varCoeffForParameters.Select(x => x.ToString("F5"))) + ")";
 
                     dynamic testResult = new ExpandoObject() ;
                     
@@ -183,16 +191,22 @@ namespace Backend
                     }
                     testResult.FoundMinimum = str_minParameters;
                     testResult.StandardDeviationOfFoundMinimum = str_stdDevForParameters;
-                    testResult.ObjectiveFunctionValue = minFunction.ToString("F5", CultureInfo.InvariantCulture);
-                    testResult.StandardDeviationOfObjectiveFunctionValue = stdDevForFunction.ToString("F5", CultureInfo.InvariantCulture);
+                    //testResult.ObjectiveFunctionValue = minFunction.ToString("F5", CultureInfo.InvariantCulture);
+                    testResult.ObjectiveFunctionValue = Math.Round(minFunction, 5);
+                    testResult.StandardDeviationOfObjectiveFunctionValue = Math.Round(stdDevForFunction, 5);
                     testResult.NumberOfObjectiveFunctionCalls = numberOfEvaluationFitnessFunction;
                     
                     testResults.Add(testResult);
-                    if (minFunction < returnedMinimum)
+                    if (minFunction < returnedObjFuncVal)
                     {
-                        returnedParamsIndex = currentParamIndex;
-                        returnedMinimum = minFunction;
+                        if(stdDevForFunction < minStdDev)
+                        {
+                            returnedParamsIndex = currentParamIndex;
+                            returnedObjFuncVal = minFunction;
+                            returnedMinimum = str_minParameters;
+                        }
                     }
+
                     currentParamIndex++;
                     
                     SaveListToFile(testResults, resultsStatePath);
@@ -201,7 +215,7 @@ namespace Backend
                 }
                 
                 iPStart = 0;
-                testState.TestFuncIterator = iF + 1;
+                testState = new TestState(testState.AlgorithmIterator, iF + 1);
                 SaveToFile(testState, testStatePath);
             }
 
@@ -218,7 +232,7 @@ namespace Backend
             }
 
             // Zapisz CSV
-            var config = new CsvConfiguration(new CultureInfo("en-US"));
+            var config = new CsvConfiguration(new CultureInfo("pl-PL"));
             using (var writer = new StreamWriter(reportFilePath))
             using (var csv = new CsvWriter(writer, config))
             {
@@ -230,7 +244,7 @@ namespace Backend
             File.Delete(testStatePath);
             File.Delete(resultsStatePath);
 
-            return (returnedMinimum, paramsDictForTest[returnedParamsIndex]);
+            return (returnedMinimum, returnedObjFuncVal, paramsDictForTest[returnedParamsIndex]);
         }
 
         static List<Dictionary<string, double>> GetParamsDict(Dictionary<string, double[]> paramsDict)
@@ -251,7 +265,6 @@ namespace Backend
             }
 
             string paramName = paramsDict.Keys.ElementAt(index);
-            Console.WriteLine(paramName);
             double[] paramValues = paramsDict[paramName];
 
             foreach (double paramValue in paramValues)
@@ -263,48 +276,71 @@ namespace Backend
 
         static void SaveToFile(TestState testState, string filePath)
         {
-            string json = JsonConvert.SerializeObject(testState, Newtonsoft.Json.Formatting.Indented);
-            File.WriteAllText(filePath, json);
+            using (var fileStream = File.CreateText(filePath))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Formatting = Newtonsoft.Json.Formatting.Indented;
+                serializer.Serialize(fileStream, testState);
+                fileStream.Close();
+            }
         }
 
         static TestState LoadFromFile(string filePath)
         {
             if (File.Exists(filePath))
             {
-                string json = File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<TestState>(json);
+                TestState testState = new TestState(0, 0);
+
+                using (var fileStream = File.OpenText(filePath))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    testState = (TestState)serializer.Deserialize(fileStream, typeof(TestState));
+                    fileStream.Close();
+                }
+
+                return testState;
             }
-            return new TestState();
+            return new TestState(0, 0);
         }
 
         static void SaveListToFile(List<dynamic> results, string filePath)
         {
-            string json = JsonConvert.SerializeObject(results, Newtonsoft.Json.Formatting.Indented);
-            File.WriteAllText(filePath, json);
+            using (var fileStream = File.CreateText(filePath))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Formatting = Newtonsoft.Json.Formatting.Indented;
+                serializer.Serialize(fileStream, results);
+            }
         }
 
         static List<dynamic> LoadListFromFile(string filePath)
         {
             if (File.Exists(filePath))
             {
-                List<dynamic> testResults = new List<dynamic>();
-
-                string json = File.ReadAllText(filePath);
-                List<dynamic> list = JsonConvert.DeserializeObject<List<dynamic>>(json);
-
-                foreach (var element in list)
+                using (var fileStream = File.Open(filePath, FileMode.Open))
                 {
-                    dynamic testResult = new ExpandoObject();
-
-                    foreach (var property in element.Properties())
+                    using (var reader = new StreamReader(fileStream))
                     {
-                        ((IDictionary<string, object>)testResult)[property.Name] = property.Value.ToObject<object>();
+                        string json = reader.ReadToEnd();
+                        List<dynamic> list = JsonConvert.DeserializeObject<List<dynamic>>(json);
+
+                        List<dynamic> testResults = new List<dynamic>();
+
+                        foreach (var element in list)
+                        {
+                            dynamic testResult = new ExpandoObject();
+
+                            foreach (var property in element.Properties())
+                            {
+                                ((IDictionary<string, object>)testResult)[property.Name] = property.Value.ToObject<object>();
+                            }
+
+                            testResults.Add(testResult);
+                        }
+
+                        return testResults;
                     }
-
-                    testResults.Add(testResult);
                 }
-
-                return testResults;
             }
             return new List<dynamic>();
         }
