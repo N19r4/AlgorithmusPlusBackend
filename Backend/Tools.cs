@@ -37,6 +37,11 @@ namespace Backend
             Console.WriteLine("Waiting for file to be unlocked: " + path);
             FileInfo file = new FileInfo(path);
             bool unlocked = false;
+            if (!File.Exists(path))
+            {
+                unlocked = true;
+                return unlocked;
+            }
             while (IsFileLocked(file))
             {
                 //wait 200ms

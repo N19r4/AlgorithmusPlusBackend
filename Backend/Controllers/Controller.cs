@@ -280,6 +280,8 @@ namespace Backend.Controllers
             string lastQueryPath = System.IO.Path.Combine(stateFolder, "LastQuery.json");
             //string json = JsonConvert.SerializeObject(algorithmRunParameters, Formatting.Indented);
             //System.IO.File.WriteAllText(lastQueryPath, json);
+            Tools.WaitForUnlockedFile(lastQueryPath);
+
             using (var fileStream = System.IO.File.CreateText(lastQueryPath))
             {
                 JsonSerializer serializer = new JsonSerializer();
@@ -373,6 +375,8 @@ namespace Backend.Controllers
 
                     //string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
                     //System.IO.File.WriteAllText(testStatePath, json2);
+                    Tools.WaitForUnlockedFile(testStatePath);
+
                     using (var fileStream = System.IO.File.CreateText(testStatePath))
                     {
                         JsonSerializer serializer = new JsonSerializer();
@@ -645,6 +649,8 @@ namespace Backend.Controllers
 
                     //string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
                     //System.IO.File.WriteAllText(testStatePath, json2);
+                    Tools.WaitForUnlockedFile(testStatePath);
+
                     using (var fileStream = System.IO.File.CreateText(testStatePath))
                     {
                         JsonSerializer serializer = new JsonSerializer();
