@@ -201,12 +201,9 @@ namespace Backend
                     testResults.Add(testResult);
                     if (minFunction < returnedObjFuncVal)
                     {
-                        if(stdDevForFunction < minStdDev)
-                        {
                             returnedParamsIndex = currentParamIndex;
                             returnedObjFuncVal = minFunction;
                             returnedMinimum = str_minParameters;
-                        }
                     }
 
                     currentParamIndex++;

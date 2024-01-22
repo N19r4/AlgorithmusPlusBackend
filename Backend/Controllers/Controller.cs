@@ -343,7 +343,7 @@ namespace Backend.Controllers
                     string returnedMinimumAndParamsFilePath = System.IO.Path.Combine(reportsFolder, $"ReturnedMinimumAndParams ({dn.name}).csv");
 
                     dynamic testResult = new System.Dynamic.ExpandoObject();
-                                        
+                    testResult.Name = dn.name;
                     foreach(var parameter in returnedparams)
                     {
                         ((IDictionary<string, object>)testResult).Add(parameter.Key, parameter.Value);
@@ -408,6 +408,62 @@ namespace Backend.Controllers
                 // {
                 //     Console.WriteLine($"Nazwa algorytmu: {optimizationAlgorithmName}");
                 // }
+                // var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
+
+                // string zipFileName = "Reports.zip";
+                // string zipFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), zipFileName);
+
+                // using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                // {
+                //     foreach (var reportFile in reportFiles)
+                //     {
+                //         zipArchive.CreateEntryFromFile(reportFile, System.IO.Path.GetFileName(reportFile));
+                //     }
+                // }
+
+                // byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
+
+                // System.IO.File.Delete(zipFilePath);
+
+                // var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
+                // {
+                //     FileName = zipFileName
+                // };
+
+                // Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
+
+                // return File(zipFileBytes, "application/zip");
+
+                //combine content of ReturnedMinimumAndParams files into one file
+                string[] returnedMinimumAndParamsFiles = Directory.GetFiles(reportsFolder, "ReturnedMinimumAndParams*.csv");
+                string combinedReturnedMinimumAndParamsFilePath = System.IO.Path.Combine(reportsFolder, "CombinedReturnedMinimumAndParams.csv");
+
+                using (var writer = new StreamWriter(combinedReturnedMinimumAndParamsFilePath))
+                {
+                    foreach (var returnedMinimumAndParamsFile in returnedMinimumAndParamsFiles)
+                    {
+                        using (var reader = new StreamReader(returnedMinimumAndParamsFile))
+                        {
+                            string line = reader.ReadLine();
+                            if (line != null)
+                            {
+                                writer.WriteLine(line);
+                            }
+                            while (!reader.EndOfStream)
+                            {
+                                line = reader.ReadLine();
+                                writer.WriteLine(line);
+                            }
+                        }
+                    }
+                }
+
+
+                string reportFile = Directory.GetFiles(reportsFolder, "CombinedReturnedMinimumAndParams.csv").FirstOrDefault();
+                var stream = new FileStream(reportFile, FileMode.Open, FileAccess.Read);
+                Response.ContentType = new MediaTypeHeaderValue("application/octet-stream").ToString();
+
+                return new FileStreamResult(stream, "text/csv") { FileDownloadName = "Report.csv" };
             }
             else 
             {
@@ -438,38 +494,12 @@ namespace Backend.Controllers
                     writer.WriteLine(isFinished);
                 }
 
-                //string reportFile = Directory.GetFiles(reportsFolder, "*.csv").FirstOrDefault();
-                //var stream = new FileStream(reportFile, FileMode.Open, FileAccess.Read);
-                //Response.ContentType = new MediaTypeHeaderValue("application/octet-stream").ToString();
+                string reportFile = Directory.GetFiles(reportsFolder, "*.csv").FirstOrDefault();
+                var stream = new FileStream(reportFile, FileMode.Open, FileAccess.Read);
+                Response.ContentType = new MediaTypeHeaderValue("application/octet-stream").ToString();
 
-                //return new FileStreamResult(stream, "text/csv") { FileDownloadName = "Report.csv" };
+                return new FileStreamResult(stream, "text/csv") { FileDownloadName = "Report.csv" };
             }
-
-            var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
-
-            string zipFileName = "Reports.zip";
-            string zipFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), zipFileName);
-
-            using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-            {
-                foreach (var reportFile in reportFiles)
-                {
-                    zipArchive.CreateEntryFromFile(reportFile, System.IO.Path.GetFileName(reportFile));
-                }
-            }
-
-            byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
-
-            System.IO.File.Delete(zipFilePath);
-
-            var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
-            {
-                FileName = zipFileName
-            };
-
-            Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
-
-            return File(zipFileBytes, "application/zip");
         }
 
         [HttpGet("IfCalculationsFinished")]
