@@ -276,7 +276,6 @@ namespace Backend
 
         static void SaveToFile(TestState testState, string filePath)
         {   
-            Tools.WaitForUnlockedFile(filePath);
             using (var fileStream = File.CreateText(filePath))
             {
                 JsonSerializer serializer = new JsonSerializer();
@@ -307,7 +306,6 @@ namespace Backend
 
         static void SaveListToFile(List<dynamic> results, string filePath)
         {
-            Tools.WaitForUnlockedFile(filePath);
             using (var fileStream = File.CreateText(filePath))
             {
                 JsonSerializer serializer = new JsonSerializer();
