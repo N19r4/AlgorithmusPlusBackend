@@ -280,7 +280,6 @@ namespace Backend.Controllers
             string lastQueryPath = System.IO.Path.Combine(stateFolder, "LastQuery.json");
             //string json = JsonConvert.SerializeObject(algorithmRunParameters, Formatting.Indented);
             //System.IO.File.WriteAllText(lastQueryPath, json);
-
             using (var fileStream = System.IO.File.CreateText(lastQueryPath))
             {
                 JsonSerializer serializer = new JsonSerializer();
@@ -319,7 +318,6 @@ namespace Backend.Controllers
 
                                 //testing started
                 isFinished = false;
-
                 using (StreamWriter writer = new StreamWriter(isFinishedPath))
                 {
                     writer.WriteLine(isFinished);
@@ -375,7 +373,6 @@ namespace Backend.Controllers
 
                     //string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
                     //System.IO.File.WriteAllText(testStatePath, json2);
-
                     using (var fileStream = System.IO.File.CreateText(testStatePath))
                     {
                         JsonSerializer serializer = new JsonSerializer();
@@ -465,7 +462,6 @@ namespace Backend.Controllers
                 }
 
                 string reportFile = Directory.GetFiles(reportsFolder, "*.csv").FirstOrDefault();
-
                 var stream = new FileStream(reportFile, FileMode.Open, FileAccess.Read);
                 Response.ContentType = new MediaTypeHeaderValue("application/octet-stream").ToString();
 
@@ -509,7 +505,8 @@ namespace Backend.Controllers
 
             if (System.IO.File.Exists(lastQueryPath))
             {
-                using (var fileStream = File.Open(lastQueryPath, FileMode.Open))
+                Tools.WaitForUnlockedFile(lastQueryPath);
+                using (var fileStream =  System.IO.File.Open(lastQueryPath, FileMode.Open))
                 {
                     using (var reader = new StreamReader(fileStream))
                     {
@@ -545,7 +542,7 @@ namespace Backend.Controllers
             {
                 //string json = System.IO.File.ReadAllText(lastQueryPath);
                 //algorithmRunParameters = JsonConvert.DeserializeObject<AlgorithmRunParameters>(json);
-
+                Tools.WaitForUnlockedFile(lastQueryPath);
                 using (var fileStream = System.IO.File.OpenText(lastQueryPath))
                 {
                     JsonSerializer serializer = new JsonSerializer();
@@ -578,7 +575,7 @@ namespace Backend.Controllers
                 {
                     //string json2 = System.IO.File.ReadAllText(testStatePath);
                     //testState = JsonConvert.DeserializeObject<TestState>(json2);
-
+                    Tools.WaitForUnlockedFile(testStatePath);
                     using (var fileStream = System.IO.File.OpenText(testStatePath))
                     {
                         JsonSerializer serializer = new JsonSerializer();
@@ -648,7 +645,6 @@ namespace Backend.Controllers
 
                     //string json2 = JsonConvert.SerializeObject(testState, Formatting.Indented);
                     //System.IO.File.WriteAllText(testStatePath, json2);
-
                     using (var fileStream = System.IO.File.CreateText(testStatePath))
                     {
                         JsonSerializer serializer = new JsonSerializer();
