@@ -1,0 +1,26 @@
+OptimiazationAlgorithm;TestFunction;NumberOfSearchedParameters;T;N;FoundMinimum;StandardDeviationOfFoundMinimum;ObjectiveFunctionValue;StandardDeviationOfObjectiveFunctionValue;NumberOfObjectiveFunctionCalls
+Snake Optimization;Rosenbrock function;2;10;10;"(1,03328; 1,06732)";"(1,06647; 0,86575)";0,00112;2,3751;110
+Snake Optimization;Rosenbrock function;2;10;20;"(0,92315; 0,87048)";"(0,43150; 0,54813)";0,03931;0,44368;220
+Snake Optimization;Rosenbrock function;2;10;30;"(1,14922; 1,31582)";"(0,49104; 0,45662)";0,02465;0,92627;330
+Snake Optimization;Rosenbrock function;2;10;40;"(0,94612; 0,89385)";"(0,32144; 0,29657)";0,00307;0,42263;440
+Snake Optimization;Rosenbrock function;2;10;50;"(1,05044; 1,10367)";"(0,47299; 0,82230)";0,00255;0,27384;550
+Snake Optimization;Rosenbrock function;2;20;10;"(1,08691; 1,17999)";"(1,20119; 2,35455)";0,00775;4,42878;210
+Snake Optimization;Rosenbrock function;2;20;20;"(0,95597; 0,89812)";"(0,44541; 0,66512)";0,02678;0,36566;420
+Snake Optimization;Rosenbrock function;2;20;30;"(1,04168; 1,08148)";"(0,44523; 0,42428)";0,00305;0,62155;630
+Snake Optimization;Rosenbrock function;2;20;40;"(0,93969; 0,88056)";"(0,33719; 0,36515)";0,00424;0,37366;840
+Snake Optimization;Rosenbrock function;2;20;50;"(1,05255; 1,10879)";"(0,22859; 0,38945)";0,00285;0,09921;1050
+Snake Optimization;Rosenbrock function;2;30;10;"(1,04673; 1,10158)";"(0,59650; 1,29348)";0,00572;0,70021;310
+Snake Optimization;Rosenbrock function;2;30;20;"(0,96930; 0,93307)";"(0,57250; 0,37908)";0,00513;1,1585;620
+Snake Optimization;Rosenbrock function;2;30;30;"(0,99116; 0,98334)";"(0,28878; 0,61090)";0,00017;0,20574;930
+Snake Optimization;Rosenbrock function;2;30;40;"(0,98260; 0,96082)";"(0,10418; 0,18492)";0,0025;0,02769;1240
+Snake Optimization;Rosenbrock function;2;30;50;"(1,01520; 1,03318)";"(0,15985; 0,37704)";0,00088;0,06892;1550
+Snake Optimization;Rosenbrock function;2;40;10;"(0,90866; 0,83710)";"(0,59797; 0,99023)";0,02143;0,36992;410
+Snake Optimization;Rosenbrock function;2;40;20;"(1,08815; 1,17925)";"(0,27044; 0,38837)";0,0101;0,16764;820
+Snake Optimization;Rosenbrock function;2;40;30;"(1,02374; 1,04724)";"(0,15601; 0,29201)";0,00063;0,06282;1230
+Snake Optimization;Rosenbrock function;2;40;40;"(0,98618; 0,97229)";"(0,10281; 0,17127)";0,0002;0,03546;1640
+Snake Optimization;Rosenbrock function;2;40;50;"(0,99712; 0,99421)";"(0,08426; 0,15424)";1E-05;0,01683;2050
+Snake Optimization;Rosenbrock function;2;50;10;"(1,01287; 1,02299)";"(0,61835; 1,00792)";0,00101;0,53335;510
+Snake Optimization;Rosenbrock function;2;50;20;"(1,02349; 1,04667)";"(0,15876; 0,27119)";0,00063;0,05246;1020
+Snake Optimization;Rosenbrock function;2;50;30;"(1,00282; 1,00598)";"(0,07497; 0,14283)";2E-05;0,01041;1530
+Snake Optimization;Rosenbrock function;2;50;40;"(0,99762; 0,99573)";"(0,15525; 0,24142)";3E-05;0,09599;2040
+Snake Optimization;Rosenbrock function;2;50;50;"(0,99644; 0,99259)";"(0,04421; 0,08929)";2E-05;0,00348;2550
