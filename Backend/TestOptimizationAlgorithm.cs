@@ -275,7 +275,8 @@ namespace Backend
         }
 
         static void SaveToFile(TestState testState, string filePath)
-        {
+        {   
+            Tools.WaitForUnlockedFile(filePath);
             using (var fileStream = File.CreateText(filePath))
             {
                 JsonSerializer serializer = new JsonSerializer();
@@ -287,6 +288,7 @@ namespace Backend
 
         static TestState LoadFromFile(string filePath)
         {
+            Tools.WaitForUnlockedFile(filePath);
             if (File.Exists(filePath))
             {
                 TestState testState = new TestState(0, 0);
@@ -305,6 +307,7 @@ namespace Backend
 
         static void SaveListToFile(List<dynamic> results, string filePath)
         {
+            Tools.WaitForUnlockedFile(filePath);
             using (var fileStream = File.CreateText(filePath))
             {
                 JsonSerializer serializer = new JsonSerializer();
@@ -317,6 +320,7 @@ namespace Backend
         {
             if (File.Exists(filePath))
             {
+                Tools.WaitForUnlockedFile(filePath);
                 using (var fileStream = File.Open(filePath, FileMode.Open))
                 {
                     using (var reader = new StreamReader(fileStream))
