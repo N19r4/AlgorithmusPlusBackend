@@ -510,6 +510,7 @@ namespace Backend.Controllers
             {
                 Tools.WaitForUnlockedFile(lastQueryPath);
                 using (var fileStream =  System.IO.File.Open(lastQueryPath, FileMode.Open))
+
                 {
                     using (var reader = new StreamReader(fileStream))
                     {
@@ -629,7 +630,7 @@ namespace Backend.Controllers
                         testResult
                     };
 
-                    var config = new CsvHelper.Configuration.CsvConfiguration(new System.Globalization.CultureInfo("en-US"));
+                    var config = new CsvHelper.Configuration.CsvConfiguration(new System.Globalization.CultureInfo("pl-PL"));
                     // var float_options = new CsvHelper.TypeConversion.TypeConverterOptions { 
                     // Formats = new[] { ".##" } };
                     //TODO: float formating in csv
