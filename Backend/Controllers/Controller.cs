@@ -586,8 +586,6 @@ namespace Backend.Controllers
                         fileStream.Close();
                     }
 
-                    //System.IO.File.Delete(testStatePath);
-
                     iAStart = testState.AlgorithmIterator;
                 }
 
