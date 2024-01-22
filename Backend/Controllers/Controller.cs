@@ -509,8 +509,14 @@ namespace Backend.Controllers
 
             if (System.IO.File.Exists(lastQueryPath))
             {
-                string json = System.IO.File.ReadAllText(lastQueryPath);
-                algorithmRunParameters = JsonConvert.DeserializeObject<AlgorithmRunParameters>(json);
+                using (var fileStream = File.Open(lastQueryPath, FileMode.Open))
+                {
+                    using (var reader = new StreamReader(fileStream))
+                    {
+                        string json = reader.ReadToEnd();
+                        algorithmRunParameters = JsonConvert.DeserializeObject<AlgorithmRunParameters>(json);
+                    }
+                }
             }
             else
             {
