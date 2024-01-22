@@ -408,33 +408,6 @@ namespace Backend.Controllers
                 // {
                 //     Console.WriteLine($"Nazwa algorytmu: {optimizationAlgorithmName}");
                 // }
-
-
-                var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
-
-                string zipFileName = "Reports.zip";
-                string zipFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), zipFileName);
-
-                using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-                {
-                    foreach (var reportFile in reportFiles)
-                    {
-                        zipArchive.CreateEntryFromFile(reportFile, System.IO.Path.GetFileName(reportFile));
-                    }
-                }
-
-                byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
-
-                System.IO.File.Delete(zipFilePath);
-
-                var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
-                {
-                    FileName = zipFileName
-                };
-
-                Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
-
-                return File(zipFileBytes, "application/zip");
             }
             else 
             {
@@ -465,41 +438,38 @@ namespace Backend.Controllers
                     writer.WriteLine(isFinished);
                 }
 
-
                 //string reportFile = Directory.GetFiles(reportsFolder, "*.csv").FirstOrDefault();
-
                 //var stream = new FileStream(reportFile, FileMode.Open, FileAccess.Read);
                 //Response.ContentType = new MediaTypeHeaderValue("application/octet-stream").ToString();
 
-
                 //return new FileStreamResult(stream, "text/csv") { FileDownloadName = "Report.csv" };
-
-                var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
-
-                string zipFileName = "Reports.zip";
-                string zipFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), zipFileName);
-
-                using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-                {
-                    foreach (var reportFile in reportFiles)
-                    {
-                        zipArchive.CreateEntryFromFile(reportFile, System.IO.Path.GetFileName(reportFile));
-                    }
-                }
-
-                byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
-
-                System.IO.File.Delete(zipFilePath);
-
-                var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
-                {
-                    FileName = zipFileName
-                };
-
-                Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
-
-                return File(zipFileBytes, "application/zip");
             }
+
+            var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
+
+            string zipFileName = "Reports.zip";
+            string zipFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), zipFileName);
+
+            using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+            {
+                foreach (var reportFile in reportFiles)
+                {
+                    zipArchive.CreateEntryFromFile(reportFile, System.IO.Path.GetFileName(reportFile));
+                }
+            }
+
+            byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
+
+            System.IO.File.Delete(zipFilePath);
+
+            var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
+            {
+                FileName = zipFileName
+            };
+
+            Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
+
+            return File(zipFileBytes, "application/zip");
         }
 
         [HttpGet("IfCalculationsFinished")]
@@ -617,8 +587,6 @@ namespace Backend.Controllers
                         fileStream.Close();
                     }
 
-                    System.IO.File.Delete(testStatePath);
-
                     iAStart = testState.AlgorithmIterator;
                 }
 
@@ -699,32 +667,6 @@ namespace Backend.Controllers
                 }
 
                 System.IO.File.Delete(testStatePath);
-
-                var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
-
-                string zipFileName = "Reports.zip";
-                string zipFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), zipFileName);
-
-                using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-                {
-                    foreach (var reportFile in reportFiles)
-                    {
-                        zipArchive.CreateEntryFromFile(reportFile, System.IO.Path.GetFileName(reportFile));
-                    }
-                }
-
-                byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
-
-                System.IO.File.Delete(zipFilePath);
-
-                var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
-                {
-                    FileName = zipFileName
-                };
-
-                Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
-
-                return File(zipFileBytes, "application/zip");
             }
             else
             {
@@ -761,33 +703,33 @@ namespace Backend.Controllers
                 //Response.ContentType = new MediaTypeHeaderValue("application/octet-stream").ToString();
 
                 //return new FileStreamResult(stream, "text/csv") { FileDownloadName = "Report.csv" };
-
-                var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
-
-                string zipFileName = "Reports.zip";
-                string zipFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), zipFileName);
-
-                using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-                {
-                    foreach (var reportFile in reportFiles)
-                    {
-                        zipArchive.CreateEntryFromFile(reportFile, System.IO.Path.GetFileName(reportFile));
-                    }
-                }
-
-                byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
-
-                System.IO.File.Delete(zipFilePath);
-
-                var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
-                {
-                    FileName = zipFileName
-                };
-
-                Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
-
-                return File(zipFileBytes, "application/zip");
             }
+
+            var reportFiles = Directory.GetFiles(reportsFolder, "*.csv");
+
+            string zipFileName = "Reports.zip";
+            string zipFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), zipFileName);
+
+            using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+            {
+                foreach (var reportFile in reportFiles)
+                {
+                    zipArchive.CreateEntryFromFile(reportFile, System.IO.Path.GetFileName(reportFile));
+                }
+            }
+
+            byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
+
+            System.IO.File.Delete(zipFilePath);
+
+            var contentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
+            {
+                FileName = zipFileName
+            };
+
+            Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
+
+            return File(zipFileBytes, "application/zip");
         }
 
         [HttpPost("CancelResuming")]

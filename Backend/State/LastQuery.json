@@ -4,9 +4,9 @@
     "SnakeOptimization"
   ],
   "TestFunctionNames": [
-    "BukinFunctionN6"
+    "RosenbrockFunction"
   ],
-  "Dim": 4,
+  "Dim": 2,
   "ParamsDict": {
     "SalpSwarmOptimization": [
       {

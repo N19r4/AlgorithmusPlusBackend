@@ -1,0 +1,26 @@
+OptimiazationAlgorithm;TestFunction;NumberOfSearchedParameters;T;N;FoundMinimum;StandardDeviationOfFoundMinimum;ObjectiveFunctionValue;StandardDeviationOfObjectiveFunctionValue;NumberOfObjectiveFunctionCalls
+Salp Swarm Optimization;Rosenbrock function;2;10;10;"(1,28064; 1,62330)";"(1,43736; 1,97907)";0,10676;754,34553;111
+Salp Swarm Optimization;Rosenbrock function;2;10;20;"(0,96688; 0,93607)";"(0,99575; 1,53331)";0,00124;46,04897;221
+Salp Swarm Optimization;Rosenbrock function;2;10;30;"(0,91347; 0,84119)";"(0,85024; 2,17441)";0,01206;22,27457;331
+Salp Swarm Optimization;Rosenbrock function;2;10;40;"(0,99115; 0,98206)";"(1,13284; 0,73810)";9E-05;1,90433;441
+Salp Swarm Optimization;Rosenbrock function;2;10;50;"(0,98852; 0,97520)";"(0,30518; 0,69473)";0,00052;2,31006;551
+Salp Swarm Optimization;Rosenbrock function;2;20;10;"(1,05465; 1,14412)";"(1,30046; 2,77041)";0,10436;155,56724;211
+Salp Swarm Optimization;Rosenbrock function;2;20;20;"(1,53904; 2,34822)";"(0,94050; 2,02778)";0,33226;201,40297;421
+Salp Swarm Optimization;Rosenbrock function;2;20;30;"(0,81500; 0,66324)";"(1,04580; 0,86499)";0,03432;12,70335;631
+Salp Swarm Optimization;Rosenbrock function;2;20;40;"(1,05025; 1,10630)";"(0,70827; 1,50952)";0,0036;16,56161;841
+Salp Swarm Optimization;Rosenbrock function;2;20;50;"(1,02617; 1,04935)";"(0,64577; 0,72914)";0,00204;0,79827;1051
+Salp Swarm Optimization;Rosenbrock function;2;30;10;"(1,03773; 1,07780)";"(1,14077; 2,18956)";0,00151;86,63807;311
+Salp Swarm Optimization;Rosenbrock function;2;30;20;"(0,99989; 1,00017)";"(0,42815; 1,20824)";2E-05;27,50481;621
+Salp Swarm Optimization;Rosenbrock function;2;30;30;"(1,19658; 1,43365)";"(0,68687; 1,61398)";0,03899;0,57179;931
+Salp Swarm Optimization;Rosenbrock function;2;30;40;"(0,85887; 0,73575)";"(1,42678; 1,66876)";0,02028;2,8693;1241
+Salp Swarm Optimization;Rosenbrock function;2;30;50;"(1,04876; 1,10040)";"(0,90682; 0,79626)";0,0024;1,56297;1551
+Salp Swarm Optimization;Rosenbrock function;2;40;10;"(1,02862; 1,05793)";"(1,23372; 2,73151)";0,00082;451,13027;411
+Salp Swarm Optimization;Rosenbrock function;2;40;20;"(0,96950; 0,93937)";"(1,06262; 1,23958)";0,00096;46,12752;821
+Salp Swarm Optimization;Rosenbrock function;2;40;30;"(0,74096; 0,54357)";"(0,98856; 2,03655)";0,07007;90,54564;1231
+Salp Swarm Optimization;Rosenbrock function;2;40;40;"(0,92876; 0,86176)";"(0,87760; 1,21296)";0,00514;1,21465;1641
+Salp Swarm Optimization;Rosenbrock function;2;40;50;"(1,03177; 1,06482)";"(0,97977; 1,30903)";0,00102;1,45919;2051
+Salp Swarm Optimization;Rosenbrock function;2;50;10;"(0,94325; 0,88260)";"(0,93758; 1,50876)";0,00829;157,09218;511
+Salp Swarm Optimization;Rosenbrock function;2;50;20;"(1,18370; 1,40205)";"(1,08549; 1,73851)";0,03383;36,7803;1021
+Salp Swarm Optimization;Rosenbrock function;2;50;30;"(0,78045; 0,60520)";"(0,79147; 0,69165)";0,04973;2,15497;1531
+Salp Swarm Optimization;Rosenbrock function;2;50;40;"(0,99997; 0,99995)";"(1,13114; 1,29495)";0;1,57022;2041
+Salp Swarm Optimization;Rosenbrock function;2;50;50;"(1,03276; 1,06666)";"(0,88051; 0,86988)";0,00107;4,21531;2551
