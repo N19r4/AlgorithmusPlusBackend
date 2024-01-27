@@ -1,14 +1,15 @@
 {
   "OptimizationAlgorithmNames": [
-    "SalpSwarmOptimization",
-    "SnakeOptimization"
+    "SnakeOptimization",
+    "HarrisHawksOptimization",
+    "SalpSwarmOptimization"
   ],
   "TestFunctionNames": [
-    "RosenbrockFunction"
+    "NetworkVoltage"
   ],
   "Dim": 2,
   "ParamsDict": {
-    "SalpSwarmOptimization": [
+    "SnakeOptimization": [
       {
         "Name": "T",
         "UpperBoundry": 50.0,
@@ -22,7 +23,27 @@
         "Step": 10.0
       }
     ],
-    "SnakeOptimization": [
+    "HarrisHawksOptimization": [
+      {
+        "Name": "N",
+        "UpperBoundry": 50.0,
+        "LowerBoundry": 10.0,
+        "Step": 10.0
+      },
+      {
+        "Name": "T",
+        "UpperBoundry": 50.0,
+        "LowerBoundry": 10.0,
+        "Step": 10.0
+      },
+      {
+        "Name": "Beta",
+        "UpperBoundry": 50.0,
+        "LowerBoundry": 10.0,
+        "Step": 10.0
+      }
+    ],
+    "SalpSwarmOptimization": [
       {
         "Name": "T",
         "UpperBoundry": 50.0,

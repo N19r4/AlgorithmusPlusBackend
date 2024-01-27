@@ -75,6 +75,8 @@ namespace Backend
                         var instance = Activator.CreateInstance(type, dim);
 
                         testFunctions.Add(instance);
+
+                        break;
                     }
                 }
             }
