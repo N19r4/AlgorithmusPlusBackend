@@ -1,2 +1,2 @@
-T,N,BestFoundMinimum,BestObjectiveFunctionValue
-30,40,"(0,99712; 0,99421)",8.408445789622452E-06
+T;N;BestFoundMinimum;BestObjectiveFunctionValue
+50;30;"(1,06201; 1,05917; 1,05922)";0,00914042896316869

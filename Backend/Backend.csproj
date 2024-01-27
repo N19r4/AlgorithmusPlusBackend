@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <Folder Include="Reports\" />
-    <Folder Include="TestFunctions\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties properties_4launchsettings_1json__JsonSchema="https://json.schemastore.org/lintstagedrc.schema.json" /></VisualStudio></ProjectExtensions>
